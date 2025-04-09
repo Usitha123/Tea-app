@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, TextInput, Alert, StyleSheet } from 'react-native';
+import { View, Text, Button, TextInput, Alert } from 'react-native';
 import { useStripe, StripeProvider } from '@stripe/stripe-react-native';
 
 export default function CheckoutScreen() {
@@ -12,15 +12,12 @@ export default function CheckoutScreen() {
 
   const fetchPaymentSheetParams = async () => {
     try {
-      // Validate amount
       if (!amount || isNaN(parseFloat(amount))) {
         Alert.alert('Invalid Amount', 'Please enter a valid amount');
         return null;
       }
 
-      // Convert amount to cents (Stripe requires amounts in cents)
       const amountInCents = Math.round(parseFloat(amount) * 100);
-      
       console.log('Sending request with body:', JSON.stringify({ cost: amountInCents }));
       
       const response = await fetch(`${API_URL}/stripeServerProcess`, {
@@ -30,12 +27,10 @@ export default function CheckoutScreen() {
         },
         body: JSON.stringify({ cost: amountInCents })
       });
-      
-      // Add debugging for response
+
       const responseText = await response.text();
       console.log('Raw response:', responseText);
       
-      // Try to parse JSON manually
       let jsonData;
       try {
         jsonData = JSON.parse(responseText);
@@ -43,11 +38,11 @@ export default function CheckoutScreen() {
         console.error('JSON Parse Error:', parseError);
         throw new Error(`Failed to parse server response: ${responseText.substring(0, 100)}...`);
       }
-      
+
       if (!response.ok) {
         throw new Error(jsonData.error || 'Failed to process payment');
       }
-      
+
       return jsonData;
     } catch (error) {
       console.error('Error fetching payment sheet params:', error);
@@ -113,12 +108,12 @@ export default function CheckoutScreen() {
       merchantIdentifier="merchant.identifier"
       urlScheme="your-url-scheme"
     >
-      <View style={styles.container}>
-        <Text style={styles.title}>Enter Payment Amount</Text>
+      <View className="flex-1 p-5 pt-12 bg-white">
+        <Text className="mb-5 text-2xl font-bold text-center">Enter Payment Amount</Text>
         <TextInput
           value={amount}
           onChangeText={setAmount}
-          style={styles.input}
+          className="p-3 mb-5 text-lg border border-gray-300 rounded-md"
           placeholder="Enter amount (£)"
           keyboardType="numeric"
         />
@@ -131,26 +126,3 @@ export default function CheckoutScreen() {
     </StripeProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    paddingTop: 60,
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 20,
-    fontSize: 16,
-  }
-});

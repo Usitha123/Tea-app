@@ -4,14 +4,15 @@ import {
   View,
   ActivityIndicator,
   Button,
-  StyleSheet,
   Image,
+ TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase';
 import { CartItemType } from './CartComponent';
+import Icon from 'react-native-vector-icons/Feather';
 
 // Strongly typed product model
 type Product = {
@@ -58,7 +59,7 @@ const ProductDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
+      <View className="items-center justify-center flex-1 p-4">
         <ActivityIndicator size="large" />
       </View>
     );
@@ -66,22 +67,28 @@ const ProductDetails: React.FC = () => {
 
   if (error) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>{error}</Text>
+      <View className="items-center justify-center flex-1 p-4">
+        <Text className="mb-4 text-lg text-center text-red-500">{error}</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Product Details</Text>
-      <Text style={styles.detail}>Product ID: {id}</Text>
+    <SafeAreaView className="flex-1 p-4 bg-white">
+      <View className="flex-row items-center mb-4">
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Icon name="arrow-left" size={24} color="black" style={{ marginRight: 16 }} />
+              </TouchableOpacity>
+              
+            </View>
+      <Text className="mb-4 text-2xl font-bold">Product Details</Text>
+      <Text className="mb-2 text-lg">Product ID: {id}</Text>
 
       {product && (
         <>
-          <Text style={styles.detail}>Name: {product.product_name}</Text>
-          <Text style={styles.detail}>Description: {product.description}</Text>
-          <Text style={styles.detail}>Price: ${product.price.toFixed(2)}</Text>
+          <Text className="mb-2 text-lg">Name: {product.product_name}</Text>
+          <Text className="mb-2 text-lg">Description: {product.description}</Text>
+          <Text className="mb-4 text-lg">Price: ${product.price.toFixed(2)}</Text>
         </>
       )}
 
@@ -96,68 +103,16 @@ const AddItemComponent: React.FC<AddItemProps> = ({ item, onAddToCart }) => {
   };
 
   return (
-    <View style={styles.addItemContainer}>
+    <View className="p-4 mb-4 bg-white border border-gray-300 shadow-md rounded-xl">
       <Image 
         source={{ uri: item.image }} 
-        style={{ width: 80, height: 80 }} 
-        resizeMode="contain" 
+        className="object-contain w-20 h-20"
       />
-      <Text style={styles.itemName}>{item.name}</Text>
-      <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+      <Text className="mt-2 text-lg font-semibold">{item.name}</Text>
+      <Text className="mb-2 text-base text-gray-600">${item.price.toFixed(2)}</Text>
       <Button title="Add to Cart" onPress={handleAddToCart} />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  title: {
-    marginBottom: 12,
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  detail: {
-    marginBottom: 8,
-    fontSize: 18,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 18,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  addItemContainer: {
-    padding: 16,
-    marginBottom: 16,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  itemName: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  itemPrice: {
-    fontSize: 16,
-    color: '#4B5563',
-    marginBottom: 8,
-  },
-});
 
 export default ProductDetails;

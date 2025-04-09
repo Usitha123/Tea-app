@@ -4,10 +4,9 @@ import Auth from '../components/Auth'
 import Account from '@/components/Account'
 import AdminDashboard from '@/components/AdminDashboard'
 import UserDashboard from '../components/UserDashboard'
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native'
+import { View, Text, ActivityIndicator } from 'react-native'
 import { Session } from '@supabase/supabase-js'
 
-// Define user role type
 type UserRole = 'user' | 'admin'
 
 export default function App() {
@@ -38,7 +37,7 @@ export default function App() {
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching user role:', error)
-        setUserRole('user') // Default to user role on error
+        setUserRole('user')
       }
 
       if (data) {
@@ -46,24 +45,23 @@ export default function App() {
       }
     } catch (error) {
       console.error('Error getting user role:', error)
-      setUserRole('user') // Default to user role on error
+      setUserRole('user')
     } finally {
       setLoading(false)
     }
   }
 
-  // Loading screen while checking authentication and role
   if (session && loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View className="items-center justify-center flex-1 bg-white">
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={styles.loadingText}>Loading your profile...</Text>
+        <Text className="mt-4 text-base text-gray-700">Loading your profile...</Text>
       </View>
     )
   }
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-white">
       {session && session.user ? (
         userRole === 'admin' ? (
           <AdminDashboard session={session} />
@@ -76,17 +74,3 @@ export default function App() {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-  }
-})

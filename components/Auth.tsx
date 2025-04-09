@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { StyleSheet, View, Alert, Text } from 'react-native'
+import { View, Alert, Text } from 'react-native'
 import { Button, Input } from '@rneui/themed'
 
 export default function Auth() {
@@ -35,7 +35,7 @@ export default function Auth() {
       })
 
       if (error) throw error
-      
+
       Alert.alert('Success!', 'Check your email for the confirmation link!')
     } catch (error) {
       if (error instanceof Error) {
@@ -47,37 +47,41 @@ export default function Auth() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login or Sign Up</Text>
-      <View style={styles.verticallySpaced}>
+    <View className="px-4 mt-10">
+      <Text className="mb-5 text-2xl font-bold text-center">Login or Sign Up</Text>
+
+      <View className="w-full py-1">
         <Input
           label="Email"
           leftIcon={{ type: 'font-awesome', name: 'envelope' }}
-          onChangeText={(text) => setEmail(text)}
+          onChangeText={setEmail}
           value={email}
           placeholder="email@address.com"
           autoCapitalize="none"
         />
       </View>
-      <View style={styles.verticallySpaced}>
+
+      <View className="w-full py-1">
         <Input
           label="Password"
           leftIcon={{ type: 'font-awesome', name: 'lock' }}
-          onChangeText={(text) => setPassword(text)}
+          onChangeText={setPassword}
           value={password}
           secureTextEntry={true}
           placeholder="Password"
           autoCapitalize="none"
         />
       </View>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
+
+      <View className="w-full py-1 mt-5">
         <Button
           title="Sign in"
           disabled={loading}
           onPress={signInWithEmail}
         />
       </View>
-      <View style={styles.verticallySpaced}>
+
+      <View className="w-full py-1">
         <Button
           title="Sign up"
           disabled={loading}
@@ -87,24 +91,3 @@ export default function Auth() {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 40,
-    padding: 12,
-  },
-  verticallySpaced: {
-    paddingTop: 4,
-    paddingBottom: 4,
-    alignSelf: 'stretch',
-  },
-  mt20: {
-    marginTop: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-})

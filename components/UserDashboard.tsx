@@ -1,13 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { TextInput,TouchableOpacity, View, Text,Image, Alert, FlatList } from 'react-native';
-import { Button } from '@rneui/themed';
+import {
+  TextInput,
+  TouchableOpacity,
+  View,
+  Text,
+  Alert,
+  FlatList,
+  Image,
+} from 'react-native';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import Account from './Account';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Link } from 'expo-router';
 
-export default function UserDashboard({ session }: { session: Session }) {
+interface UserDashboardProps {
+  session: Session;
+}
+
+export default function UserDashboard({ session }: UserDashboardProps) {
   const [showAccount, setShowAccount] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
@@ -29,13 +40,12 @@ export default function UserDashboard({ session }: { session: Session }) {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    setFilteredProducts(
-      query === ''
-        ? products
-        : products.filter((product) =>
-            product.product_name.toLowerCase().includes(query.toLowerCase())
-          )
-    );
+    const filtered = query
+      ? products.filter((product) =>
+          product.product_name.toLowerCase().includes(query.toLowerCase())
+        )
+      : products;
+    setFilteredProducts(filtered);
   };
 
   const showAlert = () => {
@@ -55,26 +65,40 @@ export default function UserDashboard({ session }: { session: Session }) {
     }
   };
 
+  const onAddToCart = (product: any) => {
+    Alert.alert('Added to cart', product.product_name);
+  };
+
   if (showAccount) {
     return <Account session={session} goBack={() => setShowAccount(false)} />;
   }
 
   return (
-    <View className="flex-1 p-5 mt-10 bg-green-100 rounded-lg">
+    <View className="flex-1 px-5 mt-10 bg-green-100 rounded-lg">
       {/* Header */}
-      <View className="flex flex-row items-center justify-between">
-        <Icon name="user" size={24} color="black" onPress={() => setShowAccount(true)} />
-        <Text className="mb-2 text-2xl font-bold">AROMA</Text>
-        <Link href={"/cart/CartComponent"}>
-        <Icon name="shopping-cart" size={24} color="black" />
+      <View className="flex-row items-center justify-between mt-5 mb-4">
+        <TouchableOpacity onPress={() => setShowAccount(true)}>
+          <Icon name="user" size={24} color="black" />
+        </TouchableOpacity>
+
+        <Text className="text-2xl font-bold">AROMA</Text>
+
+        <Link href="/cart/CartComponent" asChild>
+          <TouchableOpacity>
+            <Icon name="shopping-cart" size={24} color="black" />
+          </TouchableOpacity>
         </Link>
-        
-        <Icon name="sign-out" size={24} color="black" onPress={showAlert} />
+
+        <TouchableOpacity onPress={showAlert}>
+          <Icon name="sign-out" size={24} color="black" />
+        </TouchableOpacity>
       </View>
 
-      <Text className="mb-5 text-lg text-gray-600">A Perfect Blend of Tea & Coffee</Text>
+      {/* Greeting & Search */}
+      <Text className="mb-5 text-lg text-gray-600">
+        A Perfect Blend of Tea & Coffee
+      </Text>
 
-      {/* Search Bar */}
       <View className="flex-row items-center p-3 mb-5 bg-white rounded-lg shadow-md">
         <Icon name="search" size={20} color="black" className="mr-3" />
         <TextInput
@@ -88,48 +112,71 @@ export default function UserDashboard({ session }: { session: Session }) {
       {/* User Info */}
       <View className="p-4 mb-5 bg-gray-200 rounded-md">
         <Text className="mb-1 text-sm">You are logged in as a standard user.</Text>
-        <Text className="text-sm">You can view and edit your profile information.</Text>
-        <Link href="/home">Go to Home</Link>
-        
+        <Text className="mb-2 text-sm">You can view and edit your profile information.</Text>
+        <Link href="/home">
+          <Text className="text-blue-600">Go to Home</Text>
+        </Link>
       </View>
 
       {/* Categories */}
-      <View>
+      <View className="mb-5">
         <Text className="p-3 text-base font-semibold">Categories</Text>
-        <Text className="text-base font-semibold">Tea</Text>
-        <Text className="text-base font-semibold">Coffee</Text>
-        <Text className="text-base font-semibold">All</Text>
       </View>
 
-{/* Product List */}
-<FlatList
-  data={filteredProducts}
-  keyExtractor={(item) => item.id.toString()}
-  renderItem={({ item }) => (
-    <View className="w-40 mr-4 bg-white rounded-lg shadow">
-      <Image 
-        source={{ uri: 'https://via.placeholder.com/100' }} 
-        style={{ width: 160, height: 160, borderTopLeftRadius: 8 }} 
-        resizeMode="cover" 
-      />
-      
-      <View className="p-2">
-        <Link href={`/products/${item.id}`}>
-          <Text className="font-medium">{item.product_name}</Text>
+      <View className="flex-row justify-around mb-6">
+        <Link href="/tea/tea">
+          <Text className="text-blue-600">Tea</Text>
         </Link>
-
-        <TouchableOpacity className="px-3 py-2 mt-2 bg-blue-500 rounded-lg">
-          <Text className="font-medium text-center text-white">Add to Cart</Text>
-        </TouchableOpacity>
+        <Link href="/coffee/coffee">
+          <Text className="text-blue-600">Coffee</Text>
+        </Link>
       </View>
-    </View>
-  )}
-/>
 
+      <Text className="p-3 text-base font-semibold">All</Text>
 
-      <View>
-      <Link href="/stripepayment/payment">Home</Link>
-      <Link href="/cart/AddItemComponent">Orders</Link>
+      {/* Product Grid */}
+      <FlatList
+        data={filteredProducts}
+        keyExtractor={(_, index) => index.toString()}
+        numColumns={2}
+        showsVerticalScrollIndicator={false}
+        columnWrapperStyle={{ justifyContent: 'space-between' }}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        renderItem={({ item }) => (
+          <View className="bg-white rounded-lg mb-4 w-[48%] p-2">
+            <Image
+              source={{ uri: item.product_image }}
+              className="w-full rounded-lg h-36"
+              resizeMode="cover"
+            />
+            <Link href={`/products/${item.id}`}>
+              <Text className="mt-2 font-medium">{item.product_name}</Text>
+            </Link>
+            <Text className="text-xs text-gray-500">
+              {item.description || 'No description'}
+            </Text>
+            <View className="flex-row items-center mt-1">
+              <Text className="text-sm font-bold text-black">{item.price}</Text>
+              <Icon
+                name="shopping-cart"
+                size={14}
+                color="#16a34a"
+                style={{ marginLeft: 8 }}
+              />
+            </View>
+            <View className="h-1 mt-2 bg-green-500 rounded-full" />
+          </View>
+        )}
+      />
+
+      {/* Bottom Navigation */}
+      <View className="flex-row justify-around mb-6">
+        <Link href="/">
+          <Text className="text-blue-600">Home</Text>
+        </Link>
+        <Link href="/tea/tea">
+          <Text className="text-blue-600">Orders</Text>
+        </Link>
       </View>
     </View>
   );

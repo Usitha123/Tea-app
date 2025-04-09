@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { StyleSheet, View, Text, Alert } from 'react-native'
+import { View, Text, Alert, TouchableOpacity, } from 'react-native'
 import { Button } from '@rneui/themed'
 import { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import Account from './Account'
-import Test from './Test'
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { Link } from 'expo-router';
 
 // Define user role type
 type UserRole = 'user' | 'admin'
@@ -31,28 +32,28 @@ export default function AdminDashboard({ session }: { session: Session }) {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      
+
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
-      
+
       if (profilesError) throw profilesError
-      
+
       const { data: authUsers, error: authError } = await supabase
         .from('users')
         .select('id, email, created_at')
-      
+
       if (authError) throw authError
-      
+
       const mergedUsers = profiles.map(profile => {
         const authUser = authUsers?.find(user => user.id === profile.id)
         return {
           ...profile,
           email: authUser?.email || null,
-          created_at: authUser?.created_at || profile.created_at
+          created_at: authUser?.created_at || profile.created_at,
         }
       })
-      
+
       setUsers(mergedUsers)
     } catch (error) {
       if (error instanceof Error) {
@@ -63,6 +64,23 @@ export default function AdminDashboard({ session }: { session: Session }) {
     }
   }
 
+const showAlert = () => {
+    Alert.alert('Sign Out', 'Do you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'OK', onPress: handleSignOut },
+    ]);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      if (error instanceof Error) {
+        Alert.alert('Error signing out', error.message);
+      }
+    }
+  };
+  
   const updateUserRole = async (userId: string, newRole: UserRole) => {
     try {
       setLoading(true)
@@ -70,11 +88,11 @@ export default function AdminDashboard({ session }: { session: Session }) {
         .from('profiles')
         .update({ role: newRole })
         .eq('id', userId)
-      
+
       if (error) throw error
-      
+
       Alert.alert('Success', 'User role updated successfully')
-      fetchUsers() // Refresh the list
+      fetchUsers()
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert('Error updating role', error.message)
@@ -84,88 +102,54 @@ export default function AdminDashboard({ session }: { session: Session }) {
     }
   }
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut()
-    } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert('Error signing out', error.message)
-      }
-    }
-  }
 
   if (showAccount) {
     return <Account session={session} goBack={() => setShowAccount(false)} />
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Admin Dashboard</Text>
-      <Text style={styles.subtitle}>Welcome, {session.user.email}</Text>
+    <View className="flex-1 p-5 mt-5 bg-white">
+      {/* Header */}
+            <View className="flex-row items-center justify-between mt-5 mb-4">
+              <TouchableOpacity onPress={() => setShowAccount(true)}>
+                <Icon name="user" size={24} color="black" />
+              </TouchableOpacity>
       
-      <View style={styles.adminBadge}>
-        <Text style={styles.adminBadgeText}>ADMIN</Text>
+              <Text className="text-2xl font-bold">Admin Dashboard</Text>
+         
+              <TouchableOpacity onPress={showAlert}>
+                <Icon name="sign-out" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
+ 
+      <Text className="mb-2 text-base text-gray-600">Welcome, {session.user.email}</Text>
+
+      <View className="self-start px-3 py-1 mb-5 bg-orange-500 rounded-xl">
+        <Text className="font-bold text-white">ADMIN</Text>
       </View>
-      
-      
-      <View style={styles.buttonContainer}>
+
+      <View className="mt-3">
         <Button
-          title="Edit My Profile"
+          title="Add Products"
           onPress={() => setShowAccount(true)}
-          buttonStyle={styles.button}
+          buttonStyle={{
+            paddingVertical: 12,
+            borderRadius: 8,
+            backgroundColor: '#2089dc', // Optional custom RNE color
+          }}
+          containerStyle={{ marginVertical: 8 }}
         />
         <Button
-          title="Sign Out"
+          title="Manage Orders"
           onPress={handleSignOut}
-          buttonStyle={[styles.button, styles.signOutButton]}
+          buttonStyle={{
+            paddingVertical: 12,
+            borderRadius: 8,
+            backgroundColor: '#ff6b6b',
+          }}
+          containerStyle={{ marginVertical: 8 }}
         />
       </View>
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    marginTop: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 10,
-    color: '#666',
-  },
-  adminBadge: {
-    backgroundColor: '#ff9500',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-    marginBottom: 20,
-  },
-  adminBadgeText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginVertical: 10,
-  },
-  buttonContainer: {
-    marginTop: 10,
-  },
-  button: {
-    marginVertical: 8,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  signOutButton: {
-    backgroundColor: '#ff6b6b',
-  },
-})
