@@ -53,7 +53,7 @@ export default function CoffeeScreen() {
                     <Icon name="arrow-left" size={20} color="#333" />
                   </TouchableOpacity>
         <Text className="text-xl font-bold text-black">Tea</Text>
-         <Link href="/tea/CartScreen">
+         <Link href="/cartview/CartScreen">
                  <Icon name="shopping-cart" size={24} color="black" />{cartItems.length}
                  </Link>
       </View>

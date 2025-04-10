@@ -1,9 +1,9 @@
 // components/UserDashboard.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Image, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Image, Alert, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { Link } from 'expo-router';
-
+import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import Account from './Account';
 import { useCart } from '@/context/CartContext';
@@ -17,8 +17,9 @@ export default function UserDashboard({ session }: UserDashboardProps) {
   const [products, setProducts] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
   
-  const { cartItems, addToCart } = useCart(); // Use CartContext
+  const { cartItems, addToCart } = useCart();
 
   // Fetch products on mount
   useEffect(() => {
@@ -38,11 +39,31 @@ export default function UserDashboard({ session }: UserDashboardProps) {
   // Search filter
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    const filtered = query
-      ? products.filter((product) =>
-          product.product_name.toLowerCase().includes(query.toLowerCase())
-        )
-      : products;
+    filterProducts(query, activeCategory);
+  };
+
+  const filterByCategory = (category: string) => {
+    setActiveCategory(category);
+    filterProducts(searchQuery, category);
+  };
+
+  const filterProducts = (query: string, category: string) => {
+    let filtered = products;
+    
+    // Apply search filter
+    if (query) {
+      filtered = filtered.filter((product) =>
+        product.product_name.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+    
+    // Apply category filter
+    if (category !== 'all') {
+      filtered = filtered.filter(product => 
+        product.category?.toLowerCase() === category.toLowerCase()
+      );
+    }
+    
     setFilteredProducts(filtered);
   };
 
@@ -70,81 +91,167 @@ export default function UserDashboard({ session }: UserDashboardProps) {
     return <Account session={session} goBack={() => setShowAccount(false)} />;
   }
 
-  return (
-    <View className="flex-1 px-5 mt-10 bg-green-100 rounded-lg">
-      {/* Header */}
-      <View className="flex-row items-center justify-between mt-5 mb-4">
-        <TouchableOpacity onPress={() => setShowAccount(true)}>
-          <Icon name="user" size={24} color="black" />
-        </TouchableOpacity>
-        <Text className="text-2xl font-bold">AROMA</Text>
-        <Link href="/tea/CartScreen">
-        <Icon name="shopping-cart" size={24} color="black" />{cartItems.length}
-        </Link>
-        <TouchableOpacity onPress={showAlert}>
-          <Icon name="sign-out" size={24} color="black" />
-        </TouchableOpacity>
-      </View>
+  const CategoryButton = ({ title, isActive, onPress }: { title: string, isActive: boolean, onPress: () => void }) => (
+    <TouchableOpacity 
+      onPress={onPress}
+      className={`px-4 py-2 rounded-full mr-3 ${isActive ? 'bg-green-600' : 'bg-white border border-gray-200'}`}
+    >
+      <Text className={`font-medium ${isActive ? 'text-white' : 'text-gray-700'}`}>{title}</Text>
+    </TouchableOpacity>
+  );
 
-      {/* Greeting & Search */}
-      <Text className="mb-5 text-lg text-gray-600">A Perfect Blend of Tea & Coffee</Text>
-      <View className="flex-row items-center p-3 mb-5 bg-white rounded-lg shadow-md">
-        <Icon name="search" size={20} color="black" className="mr-3" />
-        <TextInput
-          className="flex-1 text-base"
-          placeholder="Search your Tea or Coffee"
-          value={searchQuery}
-          onChangeText={handleSearch}
-        />
+  return (
+    <View className="flex-1 bg-gray-50">
+      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
+      
+      {/* Header */}
+      <View className="px-5 pt-12 pb-4 bg-white shadow-sm">
+        <View className="flex-row items-center justify-between">
+         
+          
+          <Text className="text-2xl font-bold tracking-wider text-green-700">AROMA</Text>
+          
+          <Link href="/cartview/CartScreen" asChild>
+            <TouchableOpacity className="relative p-2">
+              <Icon name="shopping-cart" size={24} color="#16a34a" />
+              {cartItems.length > 0 && (
+                <View className="absolute top-0 right-0 flex items-center justify-center w-5 h-5 bg-red-500 rounded-full">
+                  <Text className="text-xs font-bold text-white">{cartItems.length}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </Link>
+          
+          <TouchableOpacity onPress={showAlert} className="p-2">
+            <Icon name="log-out" size={22} color="#16a34a" />
+          </TouchableOpacity>
+        </View>
+        
+        {/* Greeting & Search */}
+        <Text className="mt-3 mb-4 text-lg italic font-medium text-center text-gray-600">
+          A Perfect Blend of Tea & Coffee
+        </Text>
+        
+        <View className="flex-row items-center p-3 bg-gray-100 border border-gray-200 rounded-lg">
+          <Icon name="search" size={18} color="#4b5563" className="mr-2" />
+          <TextInput
+            className="flex-1 ml-2 text-base"
+            placeholder="Search your favorite brew..."
+            value={searchQuery}
+            onChangeText={handleSearch}
+            placeholderTextColor="#9ca3af"
+          />
+          {searchQuery ? (
+            <TouchableOpacity onPress={() => handleSearch('')}>
+              <Icon name="x" size={18} color="#4b5563" />
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
 
       {/* Categories */}
-      <Text className="p-3 text-base font-semibold">Categories</Text>
-      <View className="flex-row justify-around mb-6">
-        <Link href="/tea/tea">
-          <Text className="text-blue-600">Tea</Text>
-        </Link>
-        <Link href="/coffee/coffee">
-          <Text className="text-blue-600">Coffee</Text>
-        </Link>
+      <View className="px-5 pt-4">
+        <Text className="mb-3 text-base font-bold text-gray-700">Categories</Text>
+        <View className="flex-row pb-2">
+          <FlatList 
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={[
+              { id: 'all', title: 'All' },
+              { id: 'tea', title: 'Tea' },
+              { id: 'coffee', title: 'Coffee' },
+              { id: 'special', title: 'Special Blends' }
+            ]}
+            renderItem={({ item }) => (
+              <CategoryButton 
+                title={item.title} 
+                isActive={activeCategory === item.id}
+                onPress={() => filterByCategory(item.id)}
+              />
+            )}
+            keyExtractor={(item) => item.id}
+          />
+        </View>
       </View>
 
-      <Text className="p-3 text-base font-semibold">All</Text>
-
       {/* Product List */}
-      <FlatList
-        data={filteredProducts}
-        keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
-        numColumns={2}
-        columnWrapperStyle={{ justifyContent: 'space-between' }}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        renderItem={({ item }) => (
-          <View className="bg-white rounded-lg mb-4 w-[48%] p-2">
-            <Image
-              source={{ uri: item.product_image }}
-              className="w-full rounded-lg h-36"
-              resizeMode="cover"
-            />
-            <Text className="mt-2 font-medium">{item.product_name}</Text>
-            <Text className="text-xs text-gray-500">{item.description || 'No description'}</Text>
-            <View className="flex-row items-center justify-between mt-1">
-              <Text className="text-sm font-bold text-black">{item.price}</Text>
-              <TouchableOpacity onPress={() => addToCart(item)}>
-                <Icon name="shopping-cart" size={20} color="#16a34a" />
-              </TouchableOpacity>
-            </View>
+      <View className="flex-1 px-5 pt-2">
+        <Text className="mt-2 mb-3 text-base font-bold text-gray-700">
+          {activeCategory === 'all' ? 'All Products' : 
+           activeCategory === 'tea' ? 'Tea Collection' : 
+           activeCategory === 'coffee' ? 'Coffee Selection' : 'Special Blends'}
+        </Text>
+        
+        {filteredProducts.length === 0 ? (
+          <View className="items-center justify-center flex-1">
+            <Icon name="coffee" size={60} color="#d1d5db" />
+            <Text className="mt-4 text-base text-gray-400">No products found</Text>
           </View>
+        ) : (
+          <FlatList
+            data={filteredProducts}
+            keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
+            numColumns={2}
+            columnWrapperStyle={{ justifyContent: 'space-between' }}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <View className="bg-white rounded-2xl shadow-sm mb-5 w-[48%] overflow-hidden">
+                <Image
+                  source={{ uri: item.product_image }}
+                  className="w-full h-44"
+                  resizeMode="cover"
+                />
+                <View className="p-3">
+                  <Link href={`/products/${item.id}`} asChild>
+                    <TouchableOpacity>
+                      <Text className="text-base font-bold text-gray-800">{item.product_name}</Text>
+                    </TouchableOpacity>
+                  </Link>
+                  <Text className="mt-1 text-xs text-gray-500" numberOfLines={2}>{item.description || 'No description'}</Text>
+                  <View className="flex-row items-center justify-between mt-3">
+                    <Text className="text-lg font-bold text-green-700">${item.price}</Text>
+                    <TouchableOpacity 
+                      onPress={() => {
+                        addToCart(item);
+                        Alert.alert("Added to cart", `${item.product_name} added to your cart!`, [
+                          { text: "OK" }
+                        ]);
+                      }}
+                      className="items-center justify-center w-8 h-8 bg-green-600 rounded-full"
+                    >
+                      <Icon name="plus" size={18} color="white" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            )}
+          />
         )}
-      />
+      </View>
 
       {/* Bottom Navigation */}
-      <View className="flex-row justify-around mb-6">
-        <Link href="/">
-          <Text className="text-blue-600">Home</Text>
+      <View className="flex-row items-center justify-around px-5 py-3 bg-white border-t border-gray-100 shadow-lg">
+        <Link href="/" asChild>
+          <TouchableOpacity className="items-center">
+            <Icon name="home" size={22} color="#16a34a" />
+            <Text className="mt-1 text-xs text-gray-600">Home</Text>
+          </TouchableOpacity>
         </Link>
-        <Link href="/tea/CartScreen">
-          <Text className="text-blue-600">Orders</Text>
+        
+        <Link href="/orders/orders" asChild>
+          <TouchableOpacity className="items-center">
+            <Icon name="package" size={22} color="#9ca3af" />
+            <Text className="mt-1 text-xs text-gray-600">Orders</Text>
+          </TouchableOpacity>
         </Link>
+        
+       
+        
+        <TouchableOpacity className="items-center" onPress={() => setShowAccount(true)}>
+          <Icon name="user" size={22} color="#9ca3af" />
+          <Text className="mt-1 text-xs text-gray-600">Profile</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

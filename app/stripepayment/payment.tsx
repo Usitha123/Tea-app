@@ -3,10 +3,12 @@ import { View, Text, Button, TextInput, Alert } from 'react-native';
 import { useStripe, StripeProvider } from '@stripe/stripe-react-native';
 
 export default function CheckoutScreen() {
-  const [publishableKey, setPublishableKey] = useState('pk_test_51RBEWGP7K68X3iwBrwXlNeiY1BFrwCoVDmO7lzRFLCD9QIXGryULUcDc5Op9JX7b7IGZq3BHrzggFkWNlm72nZn000FmBeTcXt');
+  const [publishableKey, setPublishableKey] = useState(
+    'pk_test_51RBEWGP7K68X3iwBrwXlNeiY1BFrwCoVDmO7lzRFLCD9QIXGryULUcDc5Op9JX7b7IGZq3BHrzggFkWNlm72nZn000FmBeTcXt'
+  );
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [loading, setLoading] = useState(false);
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState('');
 
   const API_URL = 'http://192.168.0.199:3000/api';
 
@@ -19,18 +21,18 @@ export default function CheckoutScreen() {
 
       const amountInCents = Math.round(parseFloat(amount) * 100);
       console.log('Sending request with body:', JSON.stringify({ cost: amountInCents }));
-      
+
       const response = await fetch(`${API_URL}/stripeServerProcess`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ cost: amountInCents })
+        body: JSON.stringify({ cost: amountInCents }),
       });
 
       const responseText = await response.text();
       console.log('Raw response:', responseText);
-      
+
       let jsonData;
       try {
         jsonData = JSON.parse(responseText);
@@ -46,24 +48,25 @@ export default function CheckoutScreen() {
       return jsonData;
     } catch (error) {
       console.error('Error fetching payment sheet params:', error);
-      Alert.alert('Payment Error', error.message || 'Failed to connect to payment server');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to connect to payment server';
+      Alert.alert('Payment Error', errorMessage);
       return null;
     }
   };
 
   const initializePaymentSheet = async () => {
     setLoading(true);
-    
+
     try {
       const params = await fetchPaymentSheetParams();
-      
+
       if (!params) {
         setLoading(false);
         return;
       }
-      
+
       console.log('Payment params received:', params);
-      
+
       const { paymentIntent, ephemeralKey, customer } = params;
 
       const { error } = await initPaymentSheet({
@@ -79,13 +82,15 @@ export default function CheckoutScreen() {
 
       if (error) {
         console.error('Error initializing payment sheet:', error);
-        Alert.alert('Setup Error', error.message);
+        const errorMessage = error.message || 'Error during initialization';
+        Alert.alert('Setup Error', errorMessage);
       } else {
         openPaymentSheet();
       }
     } catch (error) {
       console.error('Error initializing payment sheet:', error);
-      Alert.alert('Setup Error', error.message || 'Failed to initialize payment');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to initialize payment';
+      Alert.alert('Setup Error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -95,10 +100,10 @@ export default function CheckoutScreen() {
     const { error } = await presentPaymentSheet();
 
     if (error) {
-      Alert.alert(`Payment Failed`, error.message);
+      Alert.alert(`Payment Failed`, error.message || 'Payment could not be completed');
     } else {
       Alert.alert('Success', `Your payment of £${amount} was successful!`);
-      setAmount("");
+      setAmount('');
     }
   };
 
@@ -118,7 +123,7 @@ export default function CheckoutScreen() {
           keyboardType="numeric"
         />
         <Button
-          title={loading ? "Processing..." : "Pay Now"}
+          title={loading ? 'Processing...' : 'Pay Now'}
           onPress={initializePaymentSheet}
           disabled={loading || !amount}
         />

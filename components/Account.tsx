@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { Alert, Text, View } from 'react-native'
+import { Alert, Text, View, TouchableOpacity } from 'react-native'
 import { Button, Input } from '@rneui/themed'
+import { useTailwind } from 'tailwind-rn'  // Fixed import
 import { Session } from '@supabase/supabase-js'
+import { Link } from 'expo-router';
+import Icon from 'react-native-vector-icons/Feather';
 
 type UserRole = 'user' | 'admin'
 
@@ -13,6 +16,7 @@ export default function Account({
   session: Session, 
   goBack?: () => void 
 }) {
+  const tw = useTailwind() // Initialize tailwind
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
   const [website, setWebsite] = useState('')
@@ -91,23 +95,23 @@ export default function Account({
   }
 
   return (
-    <View className="flex-1 p-5 mt-10">
-      <Text className="mb-5 text-2xl font-bold text-center">Your Profile</Text>
+    <View style={tw('flex-1 p-5 mt-10')}>
+      <Text style={tw('mb-5 text-2xl font-bold text-center')}>Your Profile</Text>
       
-      <View className="items-center mb-5">
+      <View style={tw('items-center mb-5')}>
         {role === 'admin' && (
-          <Text className="px-4 py-2 rounded-full font-bold bg-[#fff0e0] text-[#ff9500]">
+          <Text style={tw('px-4 py-2 rounded-full font-bold bg-orange-100 text-orange-500')}>
             Role: {role.toUpperCase()}
           </Text>
         )}
       </View>
       
-      <View className="bg-[#f9f9f9] p-4 rounded-lg mb-5">
-        <View className="mb-3">
+      <View style={tw('bg-gray-100 p-4 rounded-lg mb-5')}>
+        <View style={tw('mb-3')}>
           <Input label="Email" value={session?.user?.email} disabled />
         </View>
         
-        <View className="mb-3">
+        <View style={tw('mb-3')}>
           <Input 
             label="Username" 
             value={username || ''} 
@@ -116,7 +120,7 @@ export default function Account({
           />
         </View>
         
-        <View className="mb-3">
+        <View style={tw('mb-3')}>
           <Input 
             label="Website" 
             value={website || ''} 
@@ -125,27 +129,51 @@ export default function Account({
           />
         </View>
 
-        <View className="mt-5">
+        <View style={tw('mt-5')}>
           <Button
             title={loading ? 'Loading...' : 'Update Profile'}
             onPress={() => updateProfile({ username, website, avatar_url: avatarUrl })}
             disabled={loading}
-            buttonStyle="bg-[#2089dc] py-3 mb-3 rounded-lg"
+            buttonStyle={tw('bg-blue-500 py-3 mb-3 rounded-lg')}
           />
           
           {goBack && (
             <Button
               title="Back to Dashboard"
               onPress={goBack}
-              buttonStyle="bg-[#28a745] py-3 mb-3 rounded-lg"
+              buttonStyle={tw('bg-green-500 py-3 mb-3 rounded-lg')}
             />
           )}
+
+          {/* Bottom Navigation */}
+                <View className="flex-row items-center justify-around px-5 py-3 bg-white border-t border-gray-100 shadow-lg">
+                  <Link href="/" asChild>
+                    <TouchableOpacity className="items-center">
+                      <Icon name="home" size={22} color="#16a34a" />
+                      <Text className="mt-1 text-xs text-gray-600">Home</Text>
+                    </TouchableOpacity>
+                  </Link>
+                  
+                  <Link href="/orders/orders" asChild>
+                    <TouchableOpacity className="items-center">
+                      <Icon name="package" size={22} color="#9ca3af" />
+                      <Text className="mt-1 text-xs text-gray-600">Orders</Text>
+                    </TouchableOpacity>
+                  </Link>
+                  
+                 
+                  
+                  <TouchableOpacity className="items-center" onPress={() => setShowAccount(true)}>
+                    <Icon name="user" size={22} color="#9ca3af" />
+                    <Text className="mt-1 text-xs text-gray-600">Profile</Text>
+                  </TouchableOpacity>
+                </View>
           
           {!goBack && (
             <Button 
               title="Sign Out" 
               onPress={() => supabase.auth.signOut()} 
-              buttonStyle="bg-[#ff6b6b] py-3 rounded-lg"
+              buttonStyle={tw('bg-red-500 py-3 rounded-lg')}
             />
           )}
         </View>

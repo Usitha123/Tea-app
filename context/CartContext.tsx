@@ -1,5 +1,4 @@
-// context/CartContext.tsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Define the types for the context
@@ -19,9 +18,14 @@ interface CartContextType {
   clearCart: () => void;
 }
 
+// Define the props for CartProvider
+interface CartProviderProps {
+  children: ReactNode;
+}
+
 const CartContext = createContext<CartContextType | null>(null);
 
-export const CartProvider = ({ children }) => {
+export const CartProvider = ({ children }: CartProviderProps) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   // Load cart items from AsyncStorage on mount
