@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase'; // Make sure your Supabase client is set up properly
 import { Link } from 'expo-router';
+import { useCart } from '@/context/CartContext';
 
 
 export default function CoffeeScreen() {
@@ -11,6 +12,7 @@ export default function CoffeeScreen() {
   const [products, setProducts] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+   const {  addToCart, cartItems } = useCart(); // Use CartContext
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -43,11 +45,17 @@ export default function CoffeeScreen() {
   return (
     <View className="flex-1 px-4 pt-12 bg-white">
       {/* Header */}
-      <View className="flex-row items-center mb-4">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={24} color="black" style={{ marginRight: 16 }} />
-        </TouchableOpacity>
+      <View className="flex-row items-center justify-between mb-4">
+        <TouchableOpacity
+                    className="p-2 mr-3 rounded-full bg-gray-50"
+                    onPress={() => navigation.goBack()}
+                  >
+                    <Icon name="arrow-left" size={20} color="#333" />
+                  </TouchableOpacity>
         <Text className="text-xl font-bold text-black">Tea</Text>
+         <Link href="/tea/CartScreen">
+                 <Icon name="shopping-cart" size={24} color="black" />{cartItems.length}
+                 </Link>
       </View>
 
       {/* Search Box */}
@@ -82,9 +90,9 @@ export default function CoffeeScreen() {
             <Text className="text-xs text-gray-500">{item.description || 'No description'}</Text>
             <View className="flex-row items-center mt-1">
               <Text className="text-sm font-bold text-black">{item.price}</Text>
-              <TouchableOpacity>
-              <Icon name="shopping-cart" size={14} color="#16a34a" style={{ marginLeft: 28 }} />
-        </TouchableOpacity>
+             <TouchableOpacity onPress={() => addToCart(item)}>
+                             <Icon name="shopping-cart" size={20} color="#16a34a" />
+                           </TouchableOpacity>
               
             </View>
             <View className="h-1 mt-2 bg-green-500 rounded-full" />

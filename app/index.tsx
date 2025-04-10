@@ -7,6 +7,7 @@ import UserDashboard from '../components/UserDashboard'
 import { View, Text, ActivityIndicator } from 'react-native'
 import { Session } from '@supabase/supabase-js'
 
+
 type UserRole = 'user' | 'admin'
 
 export default function App() {
@@ -61,6 +62,7 @@ export default function App() {
   }
 
   return (
+    
     <View className="flex-1 bg-white">
       {session && session.user ? (
         userRole === 'admin' ? (
@@ -72,5 +74,6 @@ export default function App() {
         <Auth />
       )}
     </View>
+   
   )
 }

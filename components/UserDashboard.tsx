@@ -1,18 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import {
-  TextInput,
-  TouchableOpacity,
-  View,
-  Text,
-  Alert,
-  FlatList,
-  Image,
-} from 'react-native';
-import { Session } from '@supabase/supabase-js';
+// components/UserDashboard.tsx
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Image, Alert } from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
+import { Link } from 'expo-router';
+
 import { supabase } from '@/lib/supabase';
 import Account from './Account';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { Link } from 'expo-router';
+import { useCart } from '@/context/CartContext';
 
 interface UserDashboardProps {
   session: Session;
@@ -23,7 +17,10 @@ export default function UserDashboard({ session }: UserDashboardProps) {
   const [products, setProducts] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const { cartItems, addToCart } = useCart(); // Use CartContext
 
+  // Fetch products on mount
   useEffect(() => {
     const fetchProducts = async () => {
       const { data, error } = await supabase.from('products').select('*');
@@ -38,6 +35,7 @@ export default function UserDashboard({ session }: UserDashboardProps) {
     fetchProducts();
   }, []);
 
+  // Search filter
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     const filtered = query
@@ -48,6 +46,7 @@ export default function UserDashboard({ session }: UserDashboardProps) {
     setFilteredProducts(filtered);
   };
 
+  // Sign out confirmation
   const showAlert = () => {
     Alert.alert('Sign Out', 'Do you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -55,6 +54,7 @@ export default function UserDashboard({ session }: UserDashboardProps) {
     ]);
   };
 
+  // Sign out handler
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -65,10 +65,7 @@ export default function UserDashboard({ session }: UserDashboardProps) {
     }
   };
 
-  const onAddToCart = (product: any) => {
-    Alert.alert('Added to cart', product.product_name);
-  };
-
+  // Show account screen
   if (showAccount) {
     return <Account session={session} goBack={() => setShowAccount(false)} />;
   }
@@ -80,25 +77,17 @@ export default function UserDashboard({ session }: UserDashboardProps) {
         <TouchableOpacity onPress={() => setShowAccount(true)}>
           <Icon name="user" size={24} color="black" />
         </TouchableOpacity>
-
         <Text className="text-2xl font-bold">AROMA</Text>
-
-        <Link href="/cart/CartComponent" asChild>
-          <TouchableOpacity>
-            <Icon name="shopping-cart" size={24} color="black" />
-          </TouchableOpacity>
+        <Link href="/tea/CartScreen">
+        <Icon name="shopping-cart" size={24} color="black" />{cartItems.length}
         </Link>
-
         <TouchableOpacity onPress={showAlert}>
           <Icon name="sign-out" size={24} color="black" />
         </TouchableOpacity>
       </View>
 
       {/* Greeting & Search */}
-      <Text className="mb-5 text-lg text-gray-600">
-        A Perfect Blend of Tea & Coffee
-      </Text>
-
+      <Text className="mb-5 text-lg text-gray-600">A Perfect Blend of Tea & Coffee</Text>
       <View className="flex-row items-center p-3 mb-5 bg-white rounded-lg shadow-md">
         <Icon name="search" size={20} color="black" className="mr-3" />
         <TextInput
@@ -109,20 +98,8 @@ export default function UserDashboard({ session }: UserDashboardProps) {
         />
       </View>
 
-      {/* User Info */}
-      <View className="p-4 mb-5 bg-gray-200 rounded-md">
-        <Text className="mb-1 text-sm">You are logged in as a standard user.</Text>
-        <Text className="mb-2 text-sm">You can view and edit your profile information.</Text>
-        <Link href="/home">
-          <Text className="text-blue-600">Go to Home</Text>
-        </Link>
-      </View>
-
       {/* Categories */}
-      <View className="mb-5">
-        <Text className="p-3 text-base font-semibold">Categories</Text>
-      </View>
-
+      <Text className="p-3 text-base font-semibold">Categories</Text>
       <View className="flex-row justify-around mb-6">
         <Link href="/tea/tea">
           <Text className="text-blue-600">Tea</Text>
@@ -134,12 +111,11 @@ export default function UserDashboard({ session }: UserDashboardProps) {
 
       <Text className="p-3 text-base font-semibold">All</Text>
 
-      {/* Product Grid */}
+      {/* Product List */}
       <FlatList
         data={filteredProducts}
-        keyExtractor={(_, index) => index.toString()}
+        keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
         numColumns={2}
-        showsVerticalScrollIndicator={false}
         columnWrapperStyle={{ justifyContent: 'space-between' }}
         contentContainerStyle={{ paddingBottom: 100 }}
         renderItem={({ item }) => (
@@ -149,22 +125,14 @@ export default function UserDashboard({ session }: UserDashboardProps) {
               className="w-full rounded-lg h-36"
               resizeMode="cover"
             />
-            <Link href={`/products/${item.id}`}>
-              <Text className="mt-2 font-medium">{item.product_name}</Text>
-            </Link>
-            <Text className="text-xs text-gray-500">
-              {item.description || 'No description'}
-            </Text>
-            <View className="flex-row items-center mt-1">
+            <Text className="mt-2 font-medium">{item.product_name}</Text>
+            <Text className="text-xs text-gray-500">{item.description || 'No description'}</Text>
+            <View className="flex-row items-center justify-between mt-1">
               <Text className="text-sm font-bold text-black">{item.price}</Text>
-              <Icon
-                name="shopping-cart"
-                size={14}
-                color="#16a34a"
-                style={{ marginLeft: 8 }}
-              />
+              <TouchableOpacity onPress={() => addToCart(item)}>
+                <Icon name="shopping-cart" size={20} color="#16a34a" />
+              </TouchableOpacity>
             </View>
-            <View className="h-1 mt-2 bg-green-500 rounded-full" />
           </View>
         )}
       />
@@ -174,7 +142,7 @@ export default function UserDashboard({ session }: UserDashboardProps) {
         <Link href="/">
           <Text className="text-blue-600">Home</Text>
         </Link>
-        <Link href="/tea/tea">
+        <Link href="/tea/CartScreen">
           <Text className="text-blue-600">Orders</Text>
         </Link>
       </View>
