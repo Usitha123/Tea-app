@@ -118,7 +118,7 @@ export default function UserDashboard({ session }: UserDashboardProps) {
             </TouchableOpacity>
           </Link>
           
-          <Link href="/coffee/coffee">
+          <Link href="/stripe/stripe">
           <Text>Payment</Text>
         </Link>
           

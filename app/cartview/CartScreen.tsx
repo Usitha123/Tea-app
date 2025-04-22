@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
-  SafeAreaView,
   StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
@@ -13,9 +12,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useCart } from '@/context/CartContext';
 import EmptyCart from './EmptyCart';
 import { Link } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import useSession from '@/hooks/useSession';
 import { supabase } from '@/lib/supabase';
+import StripeCheckout from '../stripe/stripe'; // Import our new component
 
 interface CartItem {
   id: number;
@@ -26,14 +25,13 @@ interface CartItem {
 
 const CartScreen = () => {
   const navigation = useNavigation();
-  const { session, sessionLoading } = useSession(); // Ensure session is available
+  const { session, sessionLoading } = useSession();
   const [address, setAddress] = useState('');
   const { cartItems, removeFromCart, incrementQuantity, decrementQuantity, clearCart, calculateTotal } = useCart();
-
+  
   const typedCartItems = cartItems as CartItem[];
   const total = calculateTotal();
 
-  // Fetch profiles and user address
   const fetchProfiles = async () => {
     if (!session?.user?.id) {
       console.error('No user session found');
@@ -47,7 +45,7 @@ const CartScreen = () => {
         .eq('id', session.user.id);
 
       if (error) throw error;
-      setAddress(data?.[0]?.address || ''); // Safely access address
+      setAddress(data?.[0]?.address || '');
     } catch (error) {
       console.error("Error fetching profiles:", error);
     }
@@ -71,40 +69,6 @@ const CartScreen = () => {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Clear', onPress: clearCart, style: 'destructive' },
     ]);
-  };
-
-  const handleCheckout = async () => {
-    try {
-      const lineItems = cartItems.map((item) => ({
-        price_data: {
-          currency: 'usd',
-          product_data: { name: item.product_name },
-          unit_amount: item.price * 100,
-        },
-        quantity: item.quantity,
-      }));
-
-      const res = await fetch('https://stripe-beta-gilt.vercel.app/api/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          line_items: lineItems,
-          cart_items: cartItems,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.url) {
-        await WebBrowser.openBrowserAsync(data.url);
-      } else {
-        Alert.alert('Checkout Error', data.error || 'No URL returned');
-      }
-    } catch (err) {
-      Alert.alert('Error', err.message);
-    }
   };
 
   const renderCartItem = ({ item }: { item: CartItem }) => (
@@ -142,7 +106,6 @@ const CartScreen = () => {
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      {/* Header */}
       <View className="flex-row items-center justify-between px-5 py-4 mt-5 bg-white border-b border-gray-100">
         <View className="flex-row items-center">
           <TouchableOpacity
@@ -171,18 +134,16 @@ const CartScreen = () => {
               className="mb-4"
             />
 
-            {/* Order Summary */}
             <View className="p-5 mt-auto mb-4 bg-white shadow-sm rounded-xl">
               <View className="flex-row justify-between mb-2">
                 <Text className="text-base text-gray-600">Shipping Address</Text>
                 <Link href="/cartview/changeaddress">
-                <Text className="text-base font-medium text-green-800">Change</Text>
+                  <Text className="text-base font-medium text-green-800">Change</Text>
                 </Link>
-               
               </View>
 
               <View className="flex-row justify-between mb-2">
-              <Text className="text-base text-gray-600">{address}</Text>
+                <Text className="text-base text-gray-600">{address || "No address set"}</Text>
               </View>
 
               <View className="my-3 border-t border-gray-200" />
@@ -192,12 +153,8 @@ const CartScreen = () => {
                 <Text className="text-lg font-bold text-green-600">${total.toFixed(2)}</Text>
               </View>
 
-              <TouchableOpacity
-                className="items-center py-4 mt-5 bg-green-600 rounded-lg"
-                onPress={handleCheckout}
-              >
-                <Text className="text-base font-bold text-white">Proceed to Checkout</Text>
-              </TouchableOpacity>
+              {/* Replace the previous CheckoutScreen with our new StripeCheckout component */}
+              <StripeCheckout />
             </View>
           </>
         ) : (
@@ -205,7 +162,6 @@ const CartScreen = () => {
         )}
       </View>
 
-      {/* Bottom Navigation */}
       <View className="flex-row items-center justify-around px-5 py-3 bg-white border-t border-gray-100 shadow-lg">
         <Link href="/" asChild>
           <TouchableOpacity className="items-center">
