@@ -13,7 +13,6 @@ interface UserDashboardProps {
 }
 
 export default function UserDashboard({ session }: UserDashboardProps) {
-  const [showAccount, setShowAccount] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -86,10 +85,7 @@ export default function UserDashboard({ session }: UserDashboardProps) {
     }
   };
 
-  // Show account screen
-  if (showAccount) {
-    return <Account session={session} goBack={() => setShowAccount(false)} />;
-  }
+ 
 
   const CategoryButton = ({ title, isActive, onPress }: { title: string, isActive: boolean, onPress: () => void }) => (
     <TouchableOpacity 
@@ -121,6 +117,10 @@ export default function UserDashboard({ session }: UserDashboardProps) {
               )}
             </TouchableOpacity>
           </Link>
+          
+          <Link href="/coffee/coffee">
+          <Text>Payment</Text>
+        </Link>
           
           <TouchableOpacity onPress={showAlert} className="p-2">
             <Icon name="log-out" size={22} color="#16a34a" />
@@ -246,12 +246,13 @@ export default function UserDashboard({ session }: UserDashboardProps) {
           </TouchableOpacity>
         </Link>
         
-       
-        
-        <TouchableOpacity className="items-center" onPress={() => setShowAccount(true)}>
-          <Icon name="user" size={22} color="#9ca3af" />
-          <Text className="mt-1 text-xs text-gray-600">Profile</Text>
-        </TouchableOpacity>
+        <Link href="/profiles/useraccount" asChild>
+          <TouchableOpacity className="items-center">
+            <Icon name="user" size={22} color="#9ca3af" />
+            <Text className="mt-1 text-xs text-gray-600">Profile</Text>
+          </TouchableOpacity>
+        </Link>
+      
       </View>
     </View>
   );

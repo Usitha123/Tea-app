@@ -5,7 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 const CheckoutButton: React.FC = () => {
   const handleCheckout = async (): Promise<void> => {
     try {
-      const res = await fetch('https://stripe-beta-gilt.vercel.app/api/checkout', {
+      const res = await fetch('https://tea-app-web.vercel.app/api/checkout', {
         method: 'POST',
       });
 
