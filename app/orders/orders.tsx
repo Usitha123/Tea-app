@@ -1,112 +1,207 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
+  FlatList,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
   Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
-import { Link } from 'expo-router';
+import Icon from 'react-native-vector-icons/Feather';
 import { supabase } from '@/lib/supabase';
 
-const CartScreen = () => {
+interface Order {
+  id: number;
+  created_at: string;
+  order_status: string;
+}
+
+interface OrderProduct {
+  id: number;
+  order_id: number;
+  product_name: string;
+  product_price: number;
+  product_quantity: number;
+}
+
+const OrdersTable = () => {
   const navigation = useNavigation();
-  
-  return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [orderProducts, setOrderProducts] = useState<OrderProduct[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const ordersPerPage = 5;
 
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-5 py-4 mt-5 bg-white border-b border-gray-100">
-        <View className="flex-row items-center">
+  useEffect(() => {
+    fetchOrders();
+    fetchAllOrderProducts();
+  }, []);
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from('orders').select('*');
+    if (error) console.error('Error fetching orders:', error);
+    else setOrders(data || []);
+    setLoading(false);
+  };
+
+  const fetchAllOrderProducts = async () => {
+    const { data, error } = await supabase.from('order_products').select('*');
+    if (error) console.error('Error fetching order products:', error);
+    else setOrderProducts(data || []);
+  };
+
+  const handleRemove = (id: number) => {
+    Alert.alert('Remove Order', 'Are you sure you want to remove this order?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', onPress: () => handleDelete(id), style: 'destructive' },
+    ]);
+  };
+
+  const handleDelete = async (id: number) => {
+    const { error } = await supabase.from('orders').delete().eq('id', id);
+    if (error) console.error('Error deleting order:', error);
+    else {
+      setOrders((prev) => prev.filter((order) => order.id !== id));
+      setOrderProducts((prev) => prev.filter((p) => p.order_id !== id));
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    const map: Record<string, { bg: string; text: string }> = {
+      Accepted: { bg: 'bg-green-100', text: 'text-green-800' },
+      pending: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+      processing: { bg: 'bg-blue-100', text: 'text-blue-800' },
+      cancelled: { bg: 'bg-red-100', text: 'text-red-800' },
+    };
+    return map[status.toLowerCase()] || { bg: 'bg-gray-100', text: 'text-gray-800' };
+  };
+
+  const calculateOrderTotal = (products: OrderProduct[]) =>
+    products
+      .reduce((sum, p) => sum + p.product_price * p.product_quantity, 0)
+      .toFixed(2);
+
+  const filteredOrders = orders.filter((order) =>
+    order.id.toString().includes(searchQuery)
+  );
+
+  const paginatedOrders = filteredOrders.slice(
+    (currentPage - 1) * ordersPerPage,
+    currentPage * ordersPerPage
+  );
+
+  const renderItem = ({ item }: { item: Order }) => {
+    const products = orderProducts.filter((p) => p.order_id === item.id);
+    const statusStyle = getStatusColor(item.order_status);
+
+    return (
+      <View className="mb-4 overflow-hidden bg-white shadow-md rounded-xl">
+        <View className="flex-row items-center justify-between p-4 border-b border-gray-100">
+          <View className="flex-row items-center">
+            <View className="items-center justify-center w-10 h-10 mr-3 bg-indigo-100 rounded-full">
+              <Icon name="shopping-bag" size={16} color="#4F46E5" />
+            </View>
+            <Text className="text-lg font-bold text-gray-800">Order #{item.id}</Text>
+          </View>
+          <View className={`px-3 py-1 rounded-full ${statusStyle.bg}`}>
+            <Text className={`text-xs font-medium ${statusStyle.text}`}>
+              {item.order_status}
+            </Text>
+          </View>
+        </View>
+
+        <View className="p-4">
+          <Text className="mb-2 text-xs font-medium text-gray-500">PRODUCTS</Text>
+          {products.map((p) => (
+            <View key={p.id} className="flex-row justify-between py-2 border-b border-gray-100">
+              <View className="flex-1">
+                <Text className="font-medium text-gray-800">{p.product_name}</Text>
+                <Text className="text-xs text-gray-500">
+                  Qty: {p.product_quantity} × ${p.product_price}
+                </Text>
+              </View>
+              <Text className="font-semibold text-gray-800">
+                ${(p.product_price * p.product_quantity).toFixed(2)}
+              </Text>
+            </View>
+          ))}
+          <View className="flex-row justify-between pt-3 mt-3 border-t border-gray-200">
+            <Text className="font-semibold text-gray-600">Total</Text>
+            <Text className="font-bold text-indigo-600">
+              ${calculateOrderTotal(products)}
+            </Text>
+          </View>
+        </View>
+
+        <View className="flex-row items-center justify-between px-4 py-3 bg-gray-50">
+          <View>
+            <Text className="text-xs text-gray-500">ORDER DATE</Text>
+            <Text className="text-sm font-medium text-gray-700">
+              {new Date(item.created_at).toLocaleDateString()}
+            </Text>
+          </View>
           <TouchableOpacity
-            className="p-2 mr-3 rounded-full bg-gray-50"
-            onPress={() => navigation.goBack()}
-            accessibilityLabel="Go back"
+            onPress={() => handleRemove(item.id)}
+            className="px-3 py-2 rounded-lg bg-red-50"
           >
-            <Icon name="arrow-left" size={20} color="#333" />
+            <Text className="font-medium text-red-600">Delete</Text>
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-gray-800">Orders</Text>
         </View>
       </View>
+    );
+  };
 
-      {/* User Details */}
-      <View className="p-5 mt-auto mb-4 bg-white shadow-sm rounded-xl">
-        <Text className="mb-4 text-lg font-bold text-gray-800">Details</Text>
-
-        <View className="flex-row justify-between mb-2">
-          <Text className="text-base text-gray-600">Username</Text>
-          <Text className="text-base font-medium text-gray-800">
-            
-          </Text>
-        </View>
-
-        <View className="flex-row justify-between mb-2">
-          <Text className="text-base text-gray-600">Full Name</Text>
-          <Text className="text-base font-medium text-gray-800">
-            
-          </Text>
-        </View>
-
-        <View className="flex-row justify-between mb-2">
-          <Text className="text-base text-gray-600">Email</Text>
-          <Text className="text-base font-medium text-gray-800">
-            
-          </Text>
-        </View>
-
-        <View className="flex-row justify-between mb-2">
-          <Text className="text-base text-gray-600">Phone Number</Text>
-          <Text className="text-base font-medium text-gray-800">
-            
-          </Text>
-        </View>
-
-        <View className="flex-row justify-between mb-2">
-          <Text className="text-base text-gray-600">Address</Text>
-          <Text className="text-base font-medium text-gray-800">
-           
-          </Text>
-        </View>
-
-        <View className="my-3 border-t border-gray-200" />
-
+  return (
+    <View className="flex-1 px-4 pt-6 bg-gray-50">
+      <View className="flex-row items-center justify-between mt-5 mb-6">
         <TouchableOpacity
-          className="items-center py-4 mt-5 bg-green-600 rounded-lg"
-          accessibilityLabel="Edit profile"
+          className="p-2 bg-indigo-500 rounded-full"
+          onPress={() => navigation.goBack()}
         >
-          <Text className="text-base font-bold text-white">Edit Orders</Text>
+          <Icon name="arrow-left" size={20} color="#fff" />
         </TouchableOpacity>
+        <Text className="text-2xl font-bold text-gray-800">Orders</Text>
       </View>
 
-      {/* Bottom Navigation */}
-      <View className="flex-row items-center justify-around px-5 py-3 bg-white border-t border-gray-100 shadow-lg">
-        <Link href="/" asChild>
-          <TouchableOpacity className="items-center">
-            <Icon name="home" size={22} color="#9ca3af" />
-            <Text className="mt-1 text-xs text-gray-600">Home</Text>
-          </TouchableOpacity>
-        </Link>
+      <FlatList
+        data={paginatedOrders}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 16 }}
+      />
 
-        <Link href="/orders/orders" asChild>
-          <TouchableOpacity className="items-center">
-            <Icon name="package" size={22} color="#9ca3af" />
-            <Text className="mt-1 text-xs text-gray-600">Orders</Text>
+      {filteredOrders.length > ordersPerPage && (
+        <View className="flex-row items-center justify-between px-2 py-4 my-2 bg-white rounded-lg shadow-sm">
+          <TouchableOpacity
+            disabled={currentPage === 1}
+            onPress={() => setCurrentPage((prev) => prev - 1)}
+            className={`p-2 rounded-lg flex-row items-center ${currentPage === 1 ? 'opacity-50' : ''}`}
+          >
+            <Icon name="chevron-left" size={16} color="#4F46E5" style={{ marginRight: 4 }} />
+            <Text className="font-medium text-indigo-600">Previous</Text>
           </TouchableOpacity>
-        </Link>
 
-        <Link href="/profiles/useraccount" asChild>
-                  <TouchableOpacity className="items-center">
-                    <Icon name="user" size={22} color="#9ca3af" />
-                    <Text className="mt-1 text-xs text-gray-600">Profile</Text>
-                  </TouchableOpacity>
-                </Link>
-      </View>
-    </SafeAreaView>
+          <Text className="font-medium text-gray-600">
+            Page {currentPage} of {Math.ceil(filteredOrders.length / ordersPerPage)}
+          </Text>
+
+          <TouchableOpacity
+            disabled={currentPage * ordersPerPage >= filteredOrders.length}
+            onPress={() => setCurrentPage((prev) => prev + 1)}
+            className={`p-2 rounded-lg flex-row items-center ${
+              currentPage * ordersPerPage >= filteredOrders.length ? 'opacity-50' : ''
+            }`}
+          >
+            <Text className="font-medium text-indigo-600">Next</Text>
+            <Icon name="chevron-right" size={16} color="#4F46E5" style={{ marginLeft: 4 }} />
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
   );
 };
 
-export default CartScreen;
+export default OrdersTable;

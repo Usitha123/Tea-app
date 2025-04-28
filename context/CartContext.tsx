@@ -79,6 +79,9 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     ));
   };
 
+
+
+
   // Calculate the total price of items in the cart
   const calculateTotal = (): number => {
     return cartItems.reduce((total, item) => total + (item.quantity * (item.price || 0)), 0);

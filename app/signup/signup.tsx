@@ -1,73 +1,83 @@
-import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { View, Alert, Text, TouchableOpacity } from 'react-native';
-import { Button, Input } from '@rneui/themed';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react'
+import { Alert, StyleSheet, View } from 'react-native'
+import { supabase } from '@/lib/supabase'
+import { Button, Input } from '@rneui/themed'
 
-export default function Auth() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigation = useNavigation();
+export default function EmailForm() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const signUpWithEmail = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) throw error;
-      Alert.alert('Success!', 'Check your email for the confirmation link!');
-    } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert('Error signing up', error.message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  async function signInWithEmail() {
+    setLoading(true)
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    })
+
+    if (error) Alert.alert(error.message)
+    setLoading(false)
+  }
+
+  async function signUpWithEmail() {
+    setLoading(true)
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+    })
+
+    if (error) Alert.alert(error.message)
+    if (!session) Alert.alert('Please check your inbox for email verification!')
+    setLoading(false)
+  }
 
   return (
-    <View className="px-4 mt-10">
-      <Text className="mb-5 text-2xl font-bold text-center">Sign Up</Text>
-
-      <View className="w-full py-1">
+    <View style={styles.container}>
+      <View style={[styles.verticallySpaced, styles.mt20]}>
         <Input
           label="Email"
           leftIcon={{ type: 'font-awesome', name: 'envelope' }}
-          onChangeText={setEmail}
+          onChangeText={(text) => setEmail(text)}
           value={email}
           placeholder="email@address.com"
-          autoCapitalize="none"
+          autoCapitalize={'none'}
         />
       </View>
-
-      <View className="w-full py-1">
+      <View style={styles.verticallySpaced}>
         <Input
           label="Password"
           leftIcon={{ type: 'font-awesome', name: 'lock' }}
-          onChangeText={setPassword}
+          onChangeText={(text) => setPassword(text)}
           value={password}
-          secureTextEntry
+          secureTextEntry={true}
           placeholder="Password"
-          autoCapitalize="none"
+          autoCapitalize={'none'}
         />
       </View>
-
-      <View className="w-full py-1">
-        <Button
-          title="Sign Up"
-          disabled={loading}
-          onPress={signUpWithEmail}
-        />
+      <View style={[styles.verticallySpaced, styles.mt20]}>
+        <Button title="Sign in" disabled={loading} onPress={() => signInWithEmail()} />
       </View>
-
-      <Text className="mt-5 mb-2 text-center">Already have an account?</Text>
-      <TouchableOpacity
-        className="items-center p-2 bg-gray-100 rounded-full"
-        onPress={() => navigation.goBack()}
-        accessibilityLabel="Go back"
-      >
-        <Text>Sign In</Text>
-      </TouchableOpacity>
+      <View style={styles.verticallySpaced}>
+        <Button title="Sign up" disabled={loading} onPress={() => signUpWithEmail()} />
+      </View>
     </View>
-  );
+  )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginTop: 40,
+    padding: 12,
+  },
+  verticallySpaced: {
+    paddingTop: 4,
+    paddingBottom: 4,
+    alignSelf: 'stretch',
+  },
+  mt20: {
+    marginTop: 20,
+  },
+})

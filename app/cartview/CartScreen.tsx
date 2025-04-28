@@ -27,7 +27,7 @@ const CartScreen = () => {
   const navigation = useNavigation();
   const { session, sessionLoading } = useSession();
   const [address, setAddress] = useState('');
-  const { cartItems, removeFromCart, incrementQuantity, decrementQuantity, clearCart, calculateTotal } = useCart();
+  const { cartItems, removeFromCart, incrementQuantity, decrementQuantity, clearCart, calculateTotal, clearCartlogout } = useCart();
   
   const typedCartItems = cartItems as CartItem[];
   const total = calculateTotal();

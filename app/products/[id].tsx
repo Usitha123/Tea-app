@@ -150,22 +150,7 @@ const ProductDetails: React.FC = () => {
                 <Text className="text-lg font-bold text-white">Add to Cart</Text>
               </TouchableOpacity>
               
-              {/* Shipping & Return Policy */}
-              <View className="p-4 mb-4 border border-gray-200 rounded-lg">
-                <View className="flex-row items-center mb-3">
-                  <Icon name="truck" size={18} color="#4b5563" />
-                  <Text className="ml-2 font-medium text-gray-800">Fast Shipping</Text>
-                </View>
-                <Text className="text-sm text-gray-600">Free shipping on orders over $50</Text>
-              </View>
               
-              <View className="p-4 mb-6 border border-gray-200 rounded-lg">
-                <View className="flex-row items-center mb-3">
-                  <Icon name="refresh-cw" size={18} color="#4b5563" />
-                  <Text className="ml-2 font-medium text-gray-800">Easy Returns</Text>
-                </View>
-                <Text className="text-sm text-gray-600">30-day hassle-free return policy</Text>
-              </View>
             </View>
           )}
         </ScrollView>
