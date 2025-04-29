@@ -16,6 +16,7 @@ interface CartContextType {
   decrementQuantity: (id: string) => void;
   calculateTotal: () => number;
   clearCart: () => void;
+  clearCartstorage: () => void; // new
 }
 
 // Define the props for CartProvider
@@ -53,6 +54,18 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       ));
     } else {
       setCartItems([...cartItems, { ...product, quantity: 1 }]);
+    }
+  };
+
+
+  // new
+
+  const clearCartstorage = async () => {
+    try {
+      await AsyncStorage.removeItem('cartItems'); // Remove from AsyncStorage
+      setCartItems([]);
+    } catch (error) {
+      console.error('Failed to clear cart:', error);
     }
   };
 
@@ -101,6 +114,8 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       decrementQuantity,
       calculateTotal,
       clearCart,
+      clearCartstorage, // new
+
     }}>
       {children}
     </CartContext.Provider>

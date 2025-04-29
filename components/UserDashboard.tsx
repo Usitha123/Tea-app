@@ -45,7 +45,7 @@ export default function UserDashboard({ session }: UserDashboardProps) {
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
-  const { cartItems, addToCart } = useCart();
+  const { cartItems, addToCart, clearCartstorage } = useCart();
 
   // Fetch products on mount
   useEffect(() => {
@@ -61,15 +61,7 @@ export default function UserDashboard({ session }: UserDashboardProps) {
     fetchProducts();
   }, []);
 
-  // Clear AsyncStorage
-  const clearAsyncStorage = async () => {
-    try {
-      await AsyncStorage.clear();
-      console.log('AsyncStorage has been cleared');
-    } catch (error) {
-      console.error('Failed to clear AsyncStorage:', error);
-    }
-  };
+  
 
   // Handle search
   const handleSearch = (query: string) => {
@@ -104,7 +96,11 @@ export default function UserDashboard({ session }: UserDashboardProps) {
   const showAlert = () => {
     Alert.alert('Sign Out', 'Do you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'OK', onPress: handleSignOut, clearAsyncStorage },
+      { text: 'OK', onPress: async () => {
+        await clearCartstorage(); // <- this now clears both memory and storage
+        handleSignOut();
+      }
+    },
     ]);
   };
 
