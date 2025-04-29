@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
-import useSession from '@/hooks/useSession';
 import { supabase } from '@/lib/supabase';
+import { Link } from 'expo-router';
 
 interface Order {
   id: number;
@@ -32,24 +32,16 @@ const OrdersTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const { session, loading: sessionLoading } = useSession();
   const ordersPerPage = 5;
 
   useEffect(() => {
-    if (session) {
-      fetchOrders();
-      fetchAllOrderProducts();
-    }
-  }, [session]);
+    fetchOrders();
+    fetchAllOrderProducts();
+  }, []);
 
   const fetchOrders = async () => {
-    if (!session || !session.user) {
-      console.error('Session is not available');
-      return;
-    }
-
     setLoading(true);
-    const { data, error } = await supabase.from('orders').select('*').eq('profiles_id', session.user.id);
+    const { data, error } = await supabase.from('orders').select('*');
     if (error) console.error('Error fetching orders:', error);
     else setOrders(data || []);
     setLoading(false);
@@ -114,11 +106,6 @@ const OrdersTable = () => {
             </View>
             <Text className="text-lg font-bold text-gray-800">Order #{item.id}</Text>
           </View>
-          <View className={`px-3 py-1 rounded-full ${statusStyle.bg}`}>
-            <Text className={`text-xs font-medium ${statusStyle.text}`}>
-              {item.order_status}
-            </Text>
-          </View>
         </View>
 
         <View className="p-4">
@@ -151,7 +138,12 @@ const OrdersTable = () => {
               {new Date(item.created_at).toLocaleDateString()}
             </Text>
           </View>
-          <Text className="font-medium text-green-800">{item.order_status}</Text>
+          <Text className="font-medium text-green-600">{item.order_status}</Text>
+          <Link href="/manageorders/editorderstatus">
+                          
+          <Text className="font-medium text-green-600">Edit</Text>
+                          
+                        </Link>
           <TouchableOpacity
             onPress={() => handleRemove(item.id)}
             className="px-3 py-2 rounded-lg bg-red-50"
@@ -162,14 +154,6 @@ const OrdersTable = () => {
       </View>
     );
   };
-
-  if (sessionLoading) {
-    return (
-      <View className="items-center justify-center flex-1">
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
 
   return (
     <View className="flex-1 px-4 pt-6 bg-gray-50">

@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
-import { Alert, StyleSheet, View } from 'react-native'
+import { Alert, StyleSheet, View, Text, TouchableOpacity } from 'react-native'
 import { supabase } from '@/lib/supabase'
 import { Button, Input } from '@rneui/themed'
+import { useNavigation } from '@react-navigation/native';
 
 export default function EmailForm() {
+  const navigation = useNavigation();
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -57,12 +59,19 @@ export default function EmailForm() {
           autoCapitalize={'none'}
         />
       </View>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button title="Sign in" disabled={loading} onPress={() => signInWithEmail()} />
-      </View>
+      
       <View style={styles.verticallySpaced}>
         <Button title="Sign up" disabled={loading} onPress={() => signUpWithEmail()} />
       </View>
+       <View className="flex-row items-center justify-center mt-4">
+                  <Text className="text-base text-gray-500">Do you have already an account?</Text>
+                  <TouchableOpacity
+                              className="p-2 mr-3 rounded-full bg-gray-50"
+                              onPress={() => navigation.goBack()}
+                            >
+                             <Text> Sign In</Text>
+                            </TouchableOpacity>
+                </View>
     </View>
   )
 }

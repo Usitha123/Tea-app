@@ -101,9 +101,12 @@ export default function AdminDashboard({ session }: { session: Session }) {
     <View className="flex-1 p-5 mt-5 bg-white">
       {/* Header */}
       <View className="flex-row items-center justify-between mt-5 mb-4">
+      <Link href="/editadminprofile/editadminprofile" asChild>
         <TouchableOpacity>
           <Icon name="user" size={24} color="black" />
         </TouchableOpacity>
+        </Link>
+         
 
         <Text className="text-2xl font-bold">Admin Dashboard</Text>
 
@@ -127,7 +130,7 @@ export default function AdminDashboard({ session }: { session: Session }) {
           </TouchableOpacity>
         </Link>
 
-        <Link href="/" asChild>
+        <Link href="/manageorders/orderlist" asChild>
           <TouchableOpacity>
             <Text className="font-bold">Manage Orders</Text>
           </TouchableOpacity>

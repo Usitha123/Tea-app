@@ -119,9 +119,9 @@ const ProductDetails: React.FC = () => {
             <View className="p-4">
               {/* Product Image */}
               <View className="items-center justify-center h-64 mb-6 overflow-hidden bg-gray-100 rounded-lg">
-                {product.image_url ? (
+                {product.product_image ? (
                   <Image 
-                    source={{ uri: product.image_url }} 
+                    source={{ uri: product.product_image }} 
                     className="w-full h-full"
                     resizeMode="cover"
                   />

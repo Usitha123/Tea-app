@@ -75,7 +75,7 @@ const CartScreen = () => {
     <View className="flex-row items-center p-4 mb-3 bg-white shadow-sm rounded-xl">
       <View className="flex-1">
         <Text className="text-base font-semibold text-gray-800">{item.product_name}</Text>
-        <Text className="mt-1 text-sm text-gray-500">${item.price.toFixed(2)}</Text>
+        <Text className="mt-1 text-sm text-gray-500">Rs.{item.price.toFixed(2)}</Text>
       </View>
       <View className="flex-row items-center mr-2">
         <TouchableOpacity
@@ -150,7 +150,7 @@ const CartScreen = () => {
 
               <View className="flex-row justify-between mb-1">
                 <Text className="text-lg font-bold text-gray-800">Total</Text>
-                <Text className="text-lg font-bold text-green-600">${total.toFixed(2)}</Text>
+                <Text className="text-lg font-bold text-green-600">Rs.{total.toFixed(2)}</Text>
               </View>
 
               {/* Replace the previous CheckoutScreen with our new StripeCheckout component */}

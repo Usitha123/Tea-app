@@ -19,7 +19,7 @@ const StripeCheckout = () => {
     try {
       const lineItems = cartItems.map(item => ({
         price_data: {
-          currency: 'usd',
+          currency: 'LKR',
           product_data: { name: item.product_name },
           unit_amount: Math.round(item.price * 100),
         },
@@ -218,7 +218,7 @@ const StripeCheckout = () => {
         <ActivityIndicator color="#ffffff" size="small" />
       ) : (
         <Text className="text-base font-bold text-center text-white">
-          Checkout (${total.toFixed(2)})
+          Checkout (Rs.{total.toFixed(2)})
         </Text>
       )}
     </TouchableOpacity>
