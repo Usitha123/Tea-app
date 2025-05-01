@@ -117,12 +117,10 @@ const ProductsTable = () => {
       </View>
 
       <View className="flex-row p-4 bg-gray-50">
-        <TouchableOpacity
-          onPress={() => navigation.navigate('UpdateProduct', { id: item.id })}
-          className="flex-row items-center justify-center flex-1 px-3 py-2 mr-2 rounded-lg bg-indigo-50"
-        >
-          <Text className="font-medium text-indigo-600">Edit</Text>
-        </TouchableOpacity>
+        <Link href="/manageproducts/editproductstatus" className="flex-row items-center justify-center flex-1 px-3 py-2 mr-2 rounded-lg bg-indigo-50">
+        <Text className="font-medium text-indigo-600">Edit</Text>
+        </Link>
+      
 
         <TouchableOpacity
           onPress={() => handleRemove(item.id)}

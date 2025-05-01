@@ -108,12 +108,7 @@ const CartScreen = () => {
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <View className="flex-row items-center justify-between px-5 py-4 mt-5 bg-white border-b border-gray-100">
         <View className="flex-row items-center">
-          <TouchableOpacity
-            className="p-2 mr-3 rounded-full bg-gray-50"
-            onPress={() => navigation.goBack()}
-          >
-            <Icon name="arrow-left" size={20} color="#333" />
-          </TouchableOpacity>
+          
           <Text className="text-xl font-bold text-gray-800">Shopping Cart</Text>
         </View>
         {typedCartItems.length > 0 && (
