@@ -4,8 +4,10 @@ import { Button } from '@rneui/themed';
 import { supabase } from '@/lib/supabase';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
+import { useLocalSearchParams} from 'expo-router';
 
 export default function EditProductStatus() {
+  const { id } = useLocalSearchParams();
   const navigation = useNavigation();
   const [status, setStatus] = useState(true); // true = active, false = inactive
   const [loading, setLoading] = useState(false);
@@ -19,7 +21,7 @@ export default function EditProductStatus() {
     const { data, error } = await supabase
       .from('products')
       .update({ status })
-      .eq('id', 'YOUR_PRODUCT_ID'); // replace with actual product ID
+      .eq('id', id); // replace with actual product ID
 
     setLoading(false);
 
@@ -63,12 +65,14 @@ export default function EditProductStatus() {
       </View>
 
       <Button
-        title={loading ? 'Updating...' : 'Update Status'}
-        onPress={updateProductStatus}
-        disabled={loading}
-        buttonStyle={{ backgroundColor: '#4F46E5', borderRadius: 8 }}
-        containerStyle={{ marginTop: 16, marginBottom: 8 }}
+          title={loading ? 'Updating...' : 'Update Status'}
+          onPress={updateProductStatus}
+          disabled={loading}
+          buttonStyle={{ backgroundColor: '#4ade80', borderRadius: 8 }}
+          titleStyle={{ color: '#000', fontWeight: 'bold' }}
+          containerStyle={{ marginTop: 16, marginBottom: 8 }}
       />
+
     </ScrollView>
   );
 }

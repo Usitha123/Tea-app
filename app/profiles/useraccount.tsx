@@ -133,11 +133,10 @@ const ProfileList = () => {
         <ProfileCard key={profile.id} profile={profile} email={session?.user?.email} />
       ))}
 
-      <Link href="/profiles/edituseraccount">
-                
-                  <Text className="font-medium ">Update Profile</Text>
-                
-              </Link>
+<Link href="/profiles/edituseraccount" className="flex items-center px-2 py-2 bg-green-400 rounded-xl">
+       <Text className="justify-center font-medium text-black">Update Profile</Text>
+             </Link>
+
     </ScrollView>
   );
 };

@@ -79,7 +79,7 @@ export default function Auth() {
           <TouchableOpacity
             disabled={loading}
             onPress={signInWithEmail}
-            className={`mt-5 placeholder:rounded-lg py-3 ${loading ? 'bg-blue-300' : 'bg-green-600'} items-center mb-4`}
+            className={`mt-5 placeholder:rounded-lg py-3 ${loading ? 'bg-green-300' : 'bg-green-600'} items-center mb-4`}
           >
             <Text className="text-lg font-semibold text-white">
               {loading ? "Signing In..." : "Sign In"}

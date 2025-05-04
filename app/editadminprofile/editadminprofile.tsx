@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Alert, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { Alert, Text, ScrollView, TouchableOpacity,View} from 'react-native';
 import { Button, Input } from '@rneui/themed';
 import { supabase } from '@/lib/supabase';
 import useSession from '@/hooks/useSession';
@@ -80,17 +80,20 @@ export default function EditUserAccount() {
 
   return (
     <ScrollView className="flex-1 p-5 bg-gray-50">
+      <View>
       <Text className="mt-5 mb-5 text-2xl font-bold text-center text-gray-900">
         Edit Your Profile
       </Text>
 
       <TouchableOpacity
-        className="p-2 mr-3 rounded-full bg-gray-50"
-        onPress={() => navigation.goBack()}
-        accessibilityLabel="Go back"
-      >
-        <Icon name="arrow-left" size={20} color="#333" />
-      </TouchableOpacity>
+                    className="p-2 mr-3 rounded-full bg-gray-50"
+                    onPress={() => navigation.goBack()}
+                    accessibilityLabel="Go back"
+                  >
+                    <Icon name="arrow-left" size={20} color="#333" />
+                  </TouchableOpacity>
+      </View>
+      
 
       <Input
         label="Email"

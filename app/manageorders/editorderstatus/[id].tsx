@@ -4,8 +4,10 @@ import { Button } from '@rneui/themed';
 import { supabase } from '@/lib/supabase';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function EditUserAccount() {
+  const { id } = useLocalSearchParams();
   const navigation = useNavigation();
   const [orderStatus, setOrderStatus] = useState('Delivered');
   const [loading, setLoading] = useState(false);
@@ -17,7 +19,7 @@ export default function EditUserAccount() {
     const { data, error } = await supabase
       .from('orders')
       .update({ order_status: orderStatus })
-      .eq('id', 1); // Replace with actual ID
+      .eq('id', id); // Replace with actual ID
 
     setLoading(false);
 
@@ -67,7 +69,8 @@ export default function EditUserAccount() {
         title={loading ? 'Updating...' : 'Update Status'}
         onPress={updateProfile}
         disabled={loading}
-        buttonStyle={{ backgroundColor: '#4F46E5', borderRadius: 8 }}
+        buttonStyle={{ backgroundColor: '#4ade80', borderRadius: 8 }}
+        titleStyle={{ color: '#000', fontWeight: 'bold' }}
         containerStyle={{ marginTop: 16, marginBottom: 8 }}
       />
     </ScrollView>

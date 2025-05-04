@@ -174,12 +174,13 @@ const OrdersTable = () => {
   return (
     <View className="flex-1 px-4 pt-6 bg-gray-50">
       <View className="flex-row items-center justify-between mt-5 mb-6">
-        <TouchableOpacity
-          className="p-2 bg-indigo-500 rounded-full"
-          onPress={() => navigation.goBack()}
-        >
-          <Icon name="arrow-left" size={20} color="#fff" />
-        </TouchableOpacity>
+      <TouchableOpacity
+                    className="p-2 mr-3 rounded-full bg-gray-50"
+                    onPress={() => navigation.goBack()}
+                    accessibilityLabel="Go back"
+                  >
+                    <Icon name="arrow-left" size={20} color="#333" />
+                  </TouchableOpacity>
         <Text className="text-2xl font-bold text-gray-800">Orders</Text>
       </View>
 

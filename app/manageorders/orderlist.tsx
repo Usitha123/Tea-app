@@ -71,8 +71,8 @@ const OrdersTable = () => {
 
   const getStatusColor = (status: string) => {
     const map: Record<string, { bg: string; text: string }> = {
-      Accepted: { bg: 'bg-green-100', text: 'text-green-800' },
-      pending: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+      accepted: { bg: 'bg-green-100', text: 'text-green-800' },
+      pending: { bg: 'bg-yellow-700', text: 'text-yellow-800' },
       processing: { bg: 'bg-blue-100', text: 'text-blue-800' },
       cancelled: { bg: 'bg-red-100', text: 'text-red-800' },
     };
@@ -93,9 +93,11 @@ const OrdersTable = () => {
     currentPage * ordersPerPage
   );
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+
   const renderItem = ({ item }: { item: Order }) => {
     const products = orderProducts.filter((p) => p.order_id === item.id);
-    const statusStyle = getStatusColor(item.order_status);
 
     return (
       <View className="mb-4 overflow-hidden bg-white shadow-md rounded-xl">
@@ -139,14 +141,12 @@ const OrdersTable = () => {
             </Text>
           </View>
           <Text className="font-medium text-green-600">{item.order_status}</Text>
-          <Link href="/manageorders/editorderstatus">
-                          
-          <Text className="font-medium text-green-600">Edit</Text>
-                          
-                        </Link>
+          <Link href={`/manageorders/editorderstatus/${item.id}`} className="px-3 py-2 bg-indigo-200 rounded-lg">
+            <Text className="font-medium text-indigo-600 ">Edit</Text>
+          </Link>
           <TouchableOpacity
             onPress={() => handleRemove(item.id)}
-            className="px-3 py-2 rounded-lg bg-red-50"
+            className="px-3 py-2 bg-red-200 rounded-lg"
           >
             <Text className="font-medium text-red-600">Delete</Text>
           </TouchableOpacity>
@@ -176,30 +176,46 @@ const OrdersTable = () => {
       />
 
       {filteredOrders.length > ordersPerPage && (
-        <View className="flex-row items-center justify-between px-2 py-4 my-2 bg-white rounded-lg shadow-sm">
-          <TouchableOpacity
-            disabled={currentPage === 1}
-            onPress={() => setCurrentPage((prev) => prev - 1)}
-            className={`p-2 rounded-lg flex-row items-center ${currentPage === 1 ? 'opacity-50' : ''}`}
-          >
-            <Icon name="chevron-left" size={16} color="#4F46E5" style={{ marginRight: 4 }} />
-            <Text className="font-medium text-indigo-600">Previous</Text>
-          </TouchableOpacity>
+        <View className="flex-row items-center justify-center px-2 py-4 my-2">
+          <View className="flex-row items-center">
+            <TouchableOpacity
+              disabled={currentPage === 1}
+              onPress={() => setCurrentPage((prev) => prev - 1)}
+              className={`p-2 mx-1 ${
+                currentPage === 1 ? 'opacity-50' : ''
+              }`}
+            >
+              <Icon name="chevron-left" size={16} color="#4F46E5" />
+            </TouchableOpacity>
 
-          <Text className="font-medium text-gray-600">
-            Page {currentPage} of {Math.ceil(filteredOrders.length / ordersPerPage)}
-          </Text>
+            {[...Array(totalPages)].map((_, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setCurrentPage(index + 1)}
+                className={`w-8 h-8 mx-1 items-center justify-center rounded-full ${
+                  currentPage === index + 1 ? 'bg-indigo-100' : ''
+                }`}
+              >
+                <Text 
+                  className={`font-medium ${
+                    currentPage === index + 1 ? 'text-indigo-600' : 'text-gray-600'
+                  }`}
+                >
+                  {index + 1}
+                </Text>
+              </TouchableOpacity>
+            ))}
 
-          <TouchableOpacity
-            disabled={currentPage * ordersPerPage >= filteredOrders.length}
-            onPress={() => setCurrentPage((prev) => prev + 1)}
-            className={`p-2 rounded-lg flex-row items-center ${
-              currentPage * ordersPerPage >= filteredOrders.length ? 'opacity-50' : ''
-            }`}
-          >
-            <Text className="font-medium text-indigo-600">Next</Text>
-            <Icon name="chevron-right" size={16} color="#4F46E5" style={{ marginLeft: 4 }} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              disabled={currentPage >= totalPages}
+              onPress={() => setCurrentPage((prev) => prev + 1)}
+              className={`p-2 mx-1 ${
+                currentPage >= totalPages ? 'opacity-50' : ''
+              }`}
+            >
+              <Icon name="chevron-right" size={16} color="#4F46E5" />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </View>

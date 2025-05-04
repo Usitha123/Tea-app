@@ -129,10 +129,10 @@ export default function EditUserAccount() {
       />
 
       <Button
-        title={loading ? 'Updating...' : 'Update Profile'}
+        title={loading ? 'Updating...' : 'Update'}
         onPress={updateProfile}
         disabled={loading}
-        buttonStyle={{ backgroundColor: '#4F46E5', borderRadius: 8 }}
+        buttonStyle={{ backgroundColor: '#34D399', borderRadius: 8 }}
         containerStyle={{ marginTop: 16, marginBottom: 8 }}
       />
     </ScrollView>

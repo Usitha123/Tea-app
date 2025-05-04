@@ -117,14 +117,14 @@ const ProductsTable = () => {
       </View>
 
       <View className="flex-row p-4 bg-gray-50">
-        <Link href="/manageproducts/editproductstatus" className="flex-row items-center justify-center flex-1 px-3 py-2 mr-2 rounded-lg bg-indigo-50">
+        <Link href={`/manageproducts/editproductstatus/${item.id}`} className="flex-row items-center justify-center flex-1 px-3 py-2 mr-2 bg-indigo-200 rounded-lg">
         <Text className="font-medium text-indigo-600">Edit</Text>
         </Link>
       
 
         <TouchableOpacity
           onPress={() => handleRemove(item.id)}
-          className="flex-row items-center justify-center flex-1 px-3 py-2 ml-2 rounded-lg bg-red-50"
+          className="flex-row items-center justify-center flex-1 px-3 py-2 ml-2 bg-red-200 rounded-lg"
         >
           <Text className="font-medium text-red-600">Delete</Text>
         </TouchableOpacity>
@@ -137,15 +137,6 @@ const ProductsTable = () => {
       <Text className="mb-2 text-lg font-medium text-gray-500">
         No products found
       </Text>
-      <Text className="mb-6 text-gray-400">
-        Add your first product to get started
-      </Text>
-      <TouchableOpacity
-        onPress={() => navigation.navigate('AddProduct')}
-        className="px-4 py-2 bg-indigo-600 rounded-lg"
-      >
-        <Text className="text-white">Add Product</Text>
-      </TouchableOpacity>
     </View>
   );
 
@@ -162,7 +153,7 @@ const ProductsTable = () => {
         <Text className="text-2xl font-bold text-gray-800">
           Product Inventory
         </Text>
-        <Link href="/manageproducts/addproducts">
+        <Link href="/manageproducts/addproducts" className="p-2 bg-green-400 rounded-xl">
           
             <Text className="font-medium ">+ Add Product</Text>
           

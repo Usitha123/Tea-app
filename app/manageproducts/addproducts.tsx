@@ -76,12 +76,12 @@ export default function AddProducts() {
       
       <View className="flex-row items-center mt-5 mb-8">
           <TouchableOpacity
-            className="p-3 mr-4 rounded-full bg-neutral-800"
-            onPress={() => navigation.goBack()}
-            accessibilityLabel="Go back"
-          >
-            <Icon name="arrow-left" size={22} color="#10b981" />
-          </TouchableOpacity>
+                              className="p-2 mr-3 rounded-full bg-gray-50"
+                              onPress={() => navigation.goBack()}
+                              accessibilityLabel="Go back"
+                            >
+                              <Icon name="arrow-left" size={20} color="#333" />
+                            </TouchableOpacity>
           <Text className="text-3xl font-bold text-gray-800">Add Product</Text>
         </View>
 

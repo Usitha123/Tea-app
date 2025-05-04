@@ -98,7 +98,7 @@ export default function AdminDashboard({ session }: { session: Session }) {
   };
 
   return (
-    <View className="flex-1 p-5 mt-5 bg-white">
+    <View className="flex-1 p-5 mt-2 bg-white">
       {/* Header */}
       <View className="flex-row items-center justify-between mt-5 mb-4">
       <Link href="/editadminprofile/editadminprofile" asChild>
@@ -119,23 +119,26 @@ export default function AdminDashboard({ session }: { session: Session }) {
         Welcome, {session.user.email}
       </Text>
 
-      <View className="self-start px-3 py-1 mb-5 bg-orange-500 rounded-xl">
+      <View className="self-start px-3 py-1 mb-5 bg-indigo-600 rounded-xl">
         <Text className="font-bold text-white">ADMIN</Text>
       </View>
+      
+      <View className="mt-5 space-y-6">
+      <Link href="/manageproducts/productlist" asChild>
+  <TouchableOpacity className="p-2 bg-green-400 rounded-xl">
+    <Text className="font-bold text-center text-black">Manage Products</Text>
+  </TouchableOpacity>
+</Link>
 
-      <View className="mt-3 space-y-3">
-        <Link href="/manageproducts/productlist" asChild>
-          <TouchableOpacity>
-            <Text className="font-bold">Manage Products</Text>
-          </TouchableOpacity>
-        </Link>
+<Link href="/manageorders/orderlist" asChild>
+  <TouchableOpacity className="p-2 mt-8 bg-green-400 rounded-xl"> {/* mt-8 adds top margin */}
+    <Text className="font-bold text-center text-black">Manage Orders</Text>
+  </TouchableOpacity>
+</Link>
 
-        <Link href="/manageorders/orderlist" asChild>
-          <TouchableOpacity>
-            <Text className="font-bold">Manage Orders</Text>
-          </TouchableOpacity>
-        </Link>
-      </View>
+</View>
+
+
     </View>
   );
 }
