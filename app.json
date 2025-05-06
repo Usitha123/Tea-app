@@ -3,6 +3,11 @@
     "name": "Tea-app",
     "slug": "Tea-app",
     "version": "1.0.0",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",  // or 'cover'
+      "backgroundColor": "#2074b0"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
