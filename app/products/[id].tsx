@@ -19,7 +19,7 @@ type Product = {
   product_name: string;
   description: string;
   price: number;
-  product_image: string | null;
+  image_url?: string;
 };
 
 const ProductDetails: React.FC = () => {

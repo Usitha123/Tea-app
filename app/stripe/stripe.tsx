@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { Text, TouchableOpacity, Alert, ActivityIndicator, View } from 'react-native';
 import { useStripe } from '@stripe/stripe-react-native';
 import { useCart } from '@/context/CartContext';
 import useSession from '@/hooks/useSession';
@@ -11,36 +11,37 @@ const StripeCheckout = () => {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [loading, setLoading] = useState(false);
   const [shippingAddress, setShippingAddress] = useState('');
+  const [paymentSheetInitialized, setPaymentSheetInitialized] = useState(false);
   const { cartItems, calculateTotal, clearCart } = useCart();
   const total = calculateTotal();
   const { session } = useSession();
 
   const fetchPaymentSheetParams = async () => {
     try {
-      const lineItems = cartItems.map(item => ({
-        price_data: {
-          currency: 'LKR',
-          product_data: { name: item.product_name },
-          unit_amount: Math.round(item.price * 100),
-        },
-        quantity: item.quantity,
-      }));
-
+      // Only send essential information - the total amount
       const response = await fetch(`${API_URL}/payment-sheet`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
         body: JSON.stringify({
           amount: Math.round(total * 100),
-          line_items: lineItems,
-          cart_items: cartItems,
+          // Send just the count and minimal info about cart items
+          cart_items: cartItems.map(item => ({
+            id: item.id,
+            quantity: item.quantity
+          }))
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        console.log(`API response status: ${response.status}`);
+        throw new Error(`Network response was not ok: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching payment sheet params:', error);
       throw error;
@@ -48,25 +49,50 @@ const StripeCheckout = () => {
   };
 
   const initializePaymentSheet = async () => {
+    if (!cartItems.length) return;
+    
     try {
       setLoading(true);
+      
+      console.log('Initializing payment sheet...');
       const { paymentIntent, ephemeralKey, customer } = await fetchPaymentSheetParams();
-
+      
+      console.log('Payment intent received, configuring sheet...');
       const { error } = await initPaymentSheet({
         customerId: customer,
         customerEphemeralKeySecret: ephemeralKey,
         paymentIntentClientSecret: paymentIntent,
         merchantDisplayName: 'Tea App',
         allowsDelayedPaymentMethods: true,
+        // Add appearance configuration if desired
+        appearance: {
+          colors: {
+            primary: '#006400', // Dark green
+            background: '#ffffff',
+            componentBackground: '#f3f3f3',
+            componentBorder: '#e0e0e0',
+            componentDivider: '#e0e0e0',
+            primaryText: '#000000',
+            secondaryText: '#646464',
+            componentText: '#000000',
+            placeholderText: '#8d8d8d',
+          },
+        },
       });
 
       if (error) {
         console.error('Error initializing payment sheet:', error);
         Alert.alert('Error', `Could not initialize payment sheet: ${error.message}`);
+        setPaymentSheetInitialized(false);
+        return;
       }
+
+      console.log('Payment sheet initialized successfully');
+      setPaymentSheetInitialized(true);
     } catch (error) {
       console.error('Error in initializePaymentSheet:', error);
-      Alert.alert('Error', `Payment initialization failed: ${error.message}`);
+      Alert.alert('Error', `Payment initialization failed: ${error.message || 'Unknown error'}`);
+      setPaymentSheetInitialized(false);
     } finally {
       setLoading(false);
     }
@@ -83,7 +109,6 @@ const StripeCheckout = () => {
 
       if (error) throw error;
 
-      // Set in state and return the address
       setShippingAddress(data.address);
       return data.address;
     } catch (error) {
@@ -100,7 +125,6 @@ const StripeCheckout = () => {
       return { success: false, error: 'No user session found' };
     }
 
-    // Make sure we have a shipping address
     if (!shippingAddress) {
       console.error('No shipping address found');
       return { success: false, error: 'No shipping address found' };
@@ -153,28 +177,44 @@ const StripeCheckout = () => {
       return;
     }
 
+    if (!paymentSheetInitialized) {
+      // Try to initialize again if not ready
+      await initializePaymentSheet();
+      
+      if (!paymentSheetInitialized) {
+        Alert.alert('Error', 'Payment system is not ready. Please try again later.');
+        return;
+      }
+    }
+
     try {
       setLoading(true);
-      
-      // First get the profile and ensure we have the shipping address
+
       const address = await getProfile();
-      
+
       if (!address) {
         Alert.alert('Missing Information', 'Please update your profile with a shipping address before checkout.');
         setLoading(false);
         return;
       }
-      
-      // Then initialize payment sheet
-      await initializePaymentSheet();
 
+      console.log('Presenting payment sheet...');
       const { error } = await presentPaymentSheet();
 
+      // Handle the result of the payment sheet
       if (error) {
-        console.error('Payment sheet error:', error);
-        Alert.alert('Payment Failed', error.message);
+        console.log('Payment sheet error:', JSON.stringify(error));
+        
+        if (error.code === 'Canceled') {
+          console.log('User canceled the payment');
+          // Don't show an alert for cancellation, it's a normal user action
+          // Just log it and reset loading state
+        } else {
+          Alert.alert('Payment Failed', error.message || 'There was an issue processing your payment');
+          console.error('Payment error details:', error);
+        }
       } else {
-        // By this point, shippingAddress should be populated
+        console.log('Payment successful, saving order...');
         const result = await insertOrderWithProducts();
 
         if (result.success) {
@@ -188,40 +228,49 @@ const StripeCheckout = () => {
       }
     } catch (error) {
       console.error('Error in handlePayPress:', error);
-      Alert.alert('Error', `Payment processing failed: ${error.message}`);
+      Alert.alert('Error', `Payment processing failed: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Load initial shipping address when component mounts
   useEffect(() => {
     if (session?.user?.id) {
       getProfile();
     }
   }, [session]);
 
-  // Initialize payment sheet when cart changes
   useEffect(() => {
+    // Initialize payment sheet when cart items change
     if (cartItems.length > 0) {
       initializePaymentSheet();
     }
   }, [cartItems]);
 
+  // For debugging - log when component mounts/unmounts
+  useEffect(() => {
+    console.log('StripeCheckout component mounted');
+    return () => {
+      console.log('StripeCheckout component unmounted');
+    };
+  }, []);
+
   return (
-    <TouchableOpacity
-      className="w-full py-4 mt-4 bg-green-600 rounded-lg"
-      disabled={loading || cartItems.length === 0}
-      onPress={handlePayPress}
-    >
-      {loading ? (
-        <ActivityIndicator color="#ffffff" size="small" />
-      ) : (
-        <Text className="text-base font-bold text-center text-white">
-          Checkout (Rs.{total.toFixed(2)})
-        </Text>
-      )}
-    </TouchableOpacity>
+    <View>
+      <TouchableOpacity
+        className="w-full py-4 mt-4 bg-green-600 rounded-lg"
+        disabled={loading || cartItems.length === 0 || !paymentSheetInitialized}
+        onPress={handlePayPress}
+      >
+        {loading ? (
+          <ActivityIndicator color="#ffffff" size="small" />
+        ) : (
+          <Text className="text-base font-bold text-center text-white">
+            Checkout (Rs.{total.toFixed(2)})
+          </Text>
+        )}
+      </TouchableOpacity>
+    </View>
   );
 };
 

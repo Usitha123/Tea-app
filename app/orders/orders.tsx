@@ -10,7 +10,6 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import useSession from '@/hooks/useSession';
 import { supabase } from '@/lib/supabase';
-import { Session } from '@supabase/supabase-js';
 
 interface Order {
   id: number;
@@ -33,7 +32,7 @@ const OrdersTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const { session, loading: sessionLoading } = useSession() as { session: Session | null; loading: boolean };
+  const { session, loading: sessionLoading } = useSession();
   const ordersPerPage = 5;
 
   useEffect(() => {

@@ -13,19 +13,9 @@ import { supabase } from '@/lib/supabase';
 import { Link } from 'expo-router';
 import Icon from 'react-native-vector-icons/Feather';
 
-interface Product {
-  id: number;
-  product_name: string;
-  company: string;
-  price: number;
-  category: string;
-  quantity: number;
-  status: boolean;
-}
-
 const ProductsTable = () => {
   const navigation = useNavigation();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -83,7 +73,7 @@ const ProductsTable = () => {
     return status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
   };
 
-  const renderItem = ({ item }: { item: Product }) => (
+  const renderItem = ({ item }: { item: any }) => (
     <View className="mb-4 overflow-hidden bg-white shadow rounded-xl">
       <View className="p-4 border-b border-gray-100">
         <View className="flex-row justify-between">

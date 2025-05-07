@@ -7,7 +7,6 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
-  KeyboardTypeOptions,
 } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import Icon from 'react-native-vector-icons/Feather';
@@ -28,7 +27,7 @@ export default function AddProducts() {
   const [message, setMessage] = useState('');
   const navigation = useNavigation();
 
-  const handleInputChange = (name: string, value: string | boolean) => {
+  const handleInputChange = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -108,7 +107,7 @@ export default function AddProducts() {
   );
 }
 
-function InputField({ label, value, onChange, multiline = false, keyboardType = 'default' }: { label: string; value: string; onChange: (value: string) => void; multiline?: boolean; keyboardType?: KeyboardTypeOptions }) {
+function InputField({ label, value, onChange, multiline = false, keyboardType = 'default' }) {
   return (
     <View className="mb-4">
       <Text className="mb-1 text-gray-800">{label}</Text>
@@ -123,7 +122,7 @@ function InputField({ label, value, onChange, multiline = false, keyboardType = 
   );
 }
 
-function PickerField({ selected, onChange, options }: { selected: string; onChange: (value: string) => void; options: string[] }) {
+function PickerField({ selected, onChange, options }) {
   return (
     <View className="flex-row flex-wrap mb-4">
       {options.map(option => (

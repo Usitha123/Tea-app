@@ -7,35 +7,9 @@ import useSession from '@/hooks/useSession';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import { Link } from 'expo-router';
-import { Session } from '@supabase/supabase-js';
-
-interface Profile {
-  id: string;
-  username?: string;
-  full_name?: string;
-  role?: string;
-  phonenumber?: string;
-  address?: string;
-}
-
-interface DetailItemProps {
-  icon: string;
-  label: string;
-  value: string;
-}
-
-interface ProfileCardProps {
-  profile: Profile;
-  email?: string;
-}
-
-interface EmptyStateProps {
-  message: string;
-  onRetry?: () => void;
-}
 
 // Reusable DetailItem Component
-const DetailItem = ({ icon, label, value }: DetailItemProps) => (
+const DetailItem = ({ icon, label, value }) => (
   <View className="flex-row items-start mb-3">
     <Text className="w-6 mr-3 text-lg text-center">{icon}</Text>
     <View className="flex-1">
@@ -46,8 +20,8 @@ const DetailItem = ({ icon, label, value }: DetailItemProps) => (
 );
 
 // ProfileCard Component
-const ProfileCard = ({ profile, email }: ProfileCardProps) => {
-  const avatarLetter = profile.username?.charAt(0).toUpperCase() ?? '?';
+const ProfileCard = ({ profile, email }) => {
+  const avatarLetter = profile.username?.charAt(0).toUpperCase() ?? '?'; // Improved fallback
   return (
     <View className="mb-4 overflow-hidden bg-white shadow rounded-xl">
       <View className="flex-row items-center p-4">
@@ -72,7 +46,7 @@ const ProfileCard = ({ profile, email }: ProfileCardProps) => {
 };
 
 // EmptyState Component
-const EmptyState = ({ message, onRetry }: EmptyStateProps) => (
+const EmptyState = ({ message, onRetry }) => (
   <View className="items-center justify-center flex-1 p-8">
     <Text className="mb-4 text-4xl">📋</Text>
     <Text className="text-base text-center text-gray-500">{message}</Text>
@@ -94,10 +68,10 @@ const LoadingState = () => (
 
 // ProfileList Component
 const ProfileList = () => {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { session, loading: sessionLoading } = useSession() as { session: Session | null; loading: boolean };
+  const [error, setError] = useState(null);
+  const { session, loading: sessionLoading } = useSession();
   const navigation = useNavigation();
 
   const fetchProfiles = async () => {
@@ -115,12 +89,10 @@ const ProfileList = () => {
         .eq('id', session.user.id);
 
       if (error) throw error;
-      setProfiles(data || []);
+      setProfiles(data);
     } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-        console.error("Error fetching profiles:", error);
-      }
+      setError(error.message);
+      console.error("Error fetching profiles:", error);
     } finally {
       setLoading(false);
     }
@@ -147,23 +119,24 @@ const ProfileList = () => {
   return (
     <ScrollView className="flex-1 bg-gray-50" contentContainerClassName="p-4 pb-8">
       <View>
-        <Text className="mt-5 mb-4 text-2xl font-bold text-gray-900">Profile Information</Text>
-        <TouchableOpacity
-          className="p-2 mr-3 rounded-full bg-gray-50"
-          onPress={() => navigation.goBack()}
-          accessibilityLabel="Go back"
-        >
-          <Icon name="arrow-left" size={20} color="#333" />
-        </TouchableOpacity>
+      <Text className="mt-5 mb-4 text-2xl font-bold text-gray-900">Profile Information</Text>
+      <TouchableOpacity
+        className="p-2 mr-3 rounded-full bg-gray-50"
+        onPress={() => navigation.goBack()}
+        accessibilityLabel="Go back"
+      >
+        <Icon name="arrow-left" size={20} color="#333" />
+      </TouchableOpacity>
       </View>
       
       {profiles.map((profile) => (
         <ProfileCard key={profile.id} profile={profile} email={session?.user?.email} />
       ))}
 
-      <Link href="/profiles/edituseraccount" className="flex items-center px-2 py-2 bg-green-400 rounded-xl">
-        <Text className="justify-center font-medium text-black">Update Profile</Text>
-      </Link>
+<Link href="/profiles/edituseraccount" className="flex items-center px-2 py-2 bg-green-400 rounded-xl">
+       <Text className="justify-center font-medium text-black">Update Profile</Text>
+             </Link>
+
     </ScrollView>
   );
 };
