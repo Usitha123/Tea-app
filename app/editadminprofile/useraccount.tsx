@@ -55,7 +55,7 @@ const ProfileCard = ({ profile, email }: ProfileCardProps) => {
           <Text className="text-xl font-bold text-white">{avatarLetter}</Text>
         </View>
         <View className="flex-1 ml-3">
-          <Text className="text-lg font-semibold text-gray-900">{profile.full_name || 'Unnamed User'}</Text>
+          <Text className="text-lg font-semibold text-gray-900">{profile.full_name || 'Unnamed'}</Text>
           <Text className="text-gray-500">{profile.role || 'No Role'}</Text>
         </View>
       </View>
@@ -161,7 +161,7 @@ const ProfileList = () => {
         <ProfileCard key={profile.id} profile={profile} email={session?.user?.email} />
       ))}
 
-      <Link href="/profiles/edituseraccount" className="flex items-center px-2 py-2 bg-green-400 rounded-xl">
+      <Link href="/editadminprofile/editadminprofile" className="flex items-center px-2 py-2 bg-green-400 rounded-xl">
         <Text className="justify-center font-medium text-black">Update Profile</Text>
       </Link>
     </ScrollView>

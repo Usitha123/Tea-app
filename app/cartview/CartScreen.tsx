@@ -16,8 +16,9 @@ import useSession from '@/hooks/useSession';
 import { supabase } from '@/lib/supabase';
 import StripeCheckout from '../stripe/stripe'; // Import our new component
 
+// Properly define the CartItem interface
 interface CartItem {
-  id: number;
+  id: string; // Changed to string to match with context functions
   product_name: string;
   price: number;
   quantity: number;
@@ -25,16 +26,31 @@ interface CartItem {
 
 const CartScreen = () => {
   const navigation = useNavigation();
-  const { session, sessionLoading } = useSession();
+  const { session, loading } = useSession(); // Fixed: using loading instead of sessionLoading
+  // Define session type
+  type UserSession = {
+    user: {
+      id: string;
+    };
+  };
   const [address, setAddress] = useState('');
   const { cartItems, removeFromCart, incrementQuantity, decrementQuantity, clearCart, calculateTotal } = useCart();
   
-  const typedCartItems = cartItems as CartItem[];
+  // Cast cartItems to the proper type
+  const typedCartItems = cartItems as unknown as CartItem[];
   const total = calculateTotal();
 
   const fetchProfiles = async () => {
-    if (!session?.user?.id) {
+    if (!session) {
       console.error('No user session found');
+      return;
+    }
+    
+    // Cast session to the correct type
+    const typedSession = session as UserSession;
+    
+    if (!typedSession.user?.id) {
+      console.error('No user ID found in session');
       return;
     }
 
@@ -42,7 +58,7 @@ const CartScreen = () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', session.user.id);
+        .eq('id', typedSession.user.id);
 
       if (error) throw error;
       setAddress(data?.[0]?.address || '');
@@ -52,15 +68,15 @@ const CartScreen = () => {
   };
 
   useEffect(() => {
-    if (session && !sessionLoading) {
+    if (session && !loading) { // Fixed: using loading instead of sessionLoading
       fetchProfiles();
     }
-  }, [session, sessionLoading]);
+  }, [session, loading]); // Fixed: updated dependency
 
-  const handleRemove = (id: number) => {
+  const handleRemove = (id: string) => { // Changed parameter type to string
     Alert.alert('Remove Item', 'Are you sure you want to remove this item?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', onPress: () => removeFromCart(id.toString()), style: 'destructive' },
+      { text: 'Remove', onPress: () => removeFromCart(id), style: 'destructive' }, // Now directly use id
     ]);
   };
 
@@ -80,14 +96,14 @@ const CartScreen = () => {
       <View className="flex-row items-center mr-2">
         <TouchableOpacity
           className="items-center justify-center w-8 h-8 bg-gray-100 rounded-full"
-          onPress={() => decrementQuantity(item.id.toString())}
+          onPress={() => decrementQuantity(item.id)}
         >
           <Text className="text-lg font-medium text-gray-700">-</Text>
         </TouchableOpacity>
         <Text className="w-10 mx-2 text-base font-medium text-center">{item.quantity}</Text>
         <TouchableOpacity
           className="items-center justify-center w-8 h-8 bg-gray-100 rounded-full"
-          onPress={() => incrementQuantity(item.id.toString())}
+          onPress={() => incrementQuantity(item.id)}
         >
           <Text className="text-lg font-medium text-gray-700">+</Text>
         </TouchableOpacity>
@@ -108,7 +124,6 @@ const CartScreen = () => {
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <View className="flex-row items-center justify-between px-5 py-4 mt-5 bg-white border-b border-gray-100">
         <View className="flex-row items-center">
-          
           <Text className="text-xl font-bold text-gray-800">Shopping Cart</Text>
         </View>
         {typedCartItems.length > 0 && (

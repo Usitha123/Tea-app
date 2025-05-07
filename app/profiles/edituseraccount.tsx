@@ -5,9 +5,10 @@ import { supabase } from '@/lib/supabase';
 import useSession from '@/hooks/useSession';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
+import { Session } from '@supabase/supabase-js';
 
 export default function EditUserAccount() {
-  const { session } = useSession();
+  const { session } = useSession() as { session: Session | null };
   const navigation = useNavigation();
 
   const [loading, setLoading] = useState(true);
@@ -22,7 +23,7 @@ export default function EditUserAccount() {
     if (session?.user) getProfile();
   }, [session]);
 
-  const handleChange = (field, value) => {
+  const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -32,7 +33,7 @@ export default function EditUserAccount() {
       const { data, error } = await supabase
         .from('profiles')
         .select('full_name, username, phonenumber, address')
-        .eq('id', session.user.id)
+        .eq('id', session?.user?.id)
         .single();
 
       if (error) throw error;
@@ -47,8 +48,12 @@ export default function EditUserAccount() {
           address: data.address || ''
         });
       }
-    } catch (error) {
-      Alert.alert('Error loading profile', error?.message || 'An unknown error occurred');
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'message' in error) {
+        Alert.alert('Error loading profile', (error as any).message || 'An unknown error occurred');
+      } else {
+        Alert.alert('Error loading profile', 'An unknown error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -59,7 +64,7 @@ export default function EditUserAccount() {
       setLoading(true);
 
       const updates = {
-        id: session.user.id,
+        id: session?.user?.id,
         full_name: formData.fullName,
         username: formData.username,
         phonenumber: formData.phoneNumber,
@@ -71,8 +76,12 @@ export default function EditUserAccount() {
       if (error) throw error;
 
       Alert.alert('Success', 'Profile updated successfully!');
-    } catch (error) {
-      Alert.alert('Error updating profile', error?.message || 'An unknown error occurred');
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'message' in error) {
+        Alert.alert('Error updating profile', (error as any).message || 'An unknown error occurred');
+      } else {
+        Alert.alert('Error updating profile', 'An unknown error occurred');
+      }
     } finally {
       setLoading(false);
     }

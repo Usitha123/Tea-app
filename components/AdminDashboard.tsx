@@ -40,16 +40,19 @@ export default function AdminDashboard({ session }: { session: Session }) {
         .select('id, email, created_at');
       if (authError) throw authError;
 
-      const mergedUsers = profiles.map(profile => {
-        const authUser = authUsers?.find(user => user.id === profile.id);
-        return {
-          ...profile,
-          email: authUser?.email || null,
-          created_at: authUser?.created_at || profile.created_at,
-        };
-      });
-
-      setUsers(mergedUsers);
+      // Check if profiles and authUsers exist before mapping
+      if (profiles && authUsers) {
+        const mergedUsers = profiles.map(profile => {
+          const authUser = authUsers.find(user => user.id === profile.id);
+          return {
+            ...profile,
+            email: authUser?.email || null,
+            created_at: authUser?.created_at || profile.created_at,
+          };
+        });
+        
+        setUsers(mergedUsers);
+      }
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert('Error fetching users', error.message);
@@ -101,12 +104,11 @@ export default function AdminDashboard({ session }: { session: Session }) {
     <View className="flex-1 p-5 mt-2 bg-white">
       {/* Header */}
       <View className="flex-row items-center justify-between mt-5 mb-4">
-      <Link href="/editadminprofile/editadminprofile" asChild>
-        <TouchableOpacity>
-          <Icon name="user" size={24} color="black" />
-        </TouchableOpacity>
+        <Link href="/editadminprofile/useraccount" asChild>
+          <TouchableOpacity>
+            <Icon name="user" size={24} color="black" />
+          </TouchableOpacity>
         </Link>
-         
 
         <Text className="text-2xl font-bold">Admin Dashboard</Text>
 
@@ -116,7 +118,7 @@ export default function AdminDashboard({ session }: { session: Session }) {
       </View>
 
       <Text className="mb-2 text-base text-gray-600">
-        Welcome, {session.user.email}
+        Welcome, {session?.user?.email || 'Admin'}
       </Text>
 
       <View className="self-start px-3 py-1 mb-5 bg-indigo-600 rounded-xl">
@@ -124,21 +126,18 @@ export default function AdminDashboard({ session }: { session: Session }) {
       </View>
       
       <View className="mt-5 space-y-6">
-      <Link href="/manageproducts/productlist" asChild>
-  <TouchableOpacity className="p-2 bg-green-400 rounded-xl">
-    <Text className="font-bold text-center text-black">Manage Products</Text>
-  </TouchableOpacity>
-</Link>
+        <Link href="/manageproducts/productlist" asChild>
+          <TouchableOpacity className="p-2 bg-green-400 rounded-xl">
+            <Text className="font-bold text-center text-black">Manage Products</Text>
+          </TouchableOpacity>
+        </Link>
 
-<Link href="/manageorders/orderlist" asChild>
-  <TouchableOpacity className="p-2 mt-8 bg-green-400 rounded-xl"> {/* mt-8 adds top margin */}
-    <Text className="font-bold text-center text-black">Manage Orders</Text>
-  </TouchableOpacity>
-</Link>
-
-</View>
-
-
+        <Link href="/manageorders/orderlist" asChild>
+          <TouchableOpacity className="p-2 mt-8 bg-green-400 rounded-xl">
+            <Text className="font-bold text-center text-black">Manage Orders</Text>
+          </TouchableOpacity>
+        </Link>
+      </View>
     </View>
   );
 }

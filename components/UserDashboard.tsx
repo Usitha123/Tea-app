@@ -5,7 +5,6 @@ import Icon from 'react-native-vector-icons/Feather';
 import { Link } from 'expo-router';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import Account from './Account';
 import { useCart } from '@/context/CartContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
