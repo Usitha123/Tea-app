@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Alert, StyleSheet, View, Text, TouchableOpacity } from 'react-native'
+import { Alert, StyleSheet, View, Text, TouchableOpacity} from 'react-native'
 import { supabase } from '@/lib/supabase'
 import { Button, Input } from '@rneui/themed'
 import { useNavigation } from '@react-navigation/native';

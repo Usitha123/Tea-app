@@ -1,27 +1,53 @@
 // components/UserDashboard.tsx
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Image, Alert, StatusBar } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Image,
+  Alert,
+  StatusBar,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { Link } from 'expo-router';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface UserDashboardProps {
   session: Session;
 }
 
-const CategoryButton = ({ title, isActive, onPress }: { title: string, isActive: boolean, onPress: () => void }) => (
+const CategoryButton = ({
+  title,
+  isActive,
+  onPress,
+}: {
+  title: string;
+  isActive: boolean;
+  onPress: () => void;
+}) => (
   <TouchableOpacity
     onPress={onPress}
-    className={`px-4 py-2 rounded-full mr-3 ${isActive ? 'bg-green-600' : 'bg-white border border-gray-200'}`}
+    className={`px-4 py-2 rounded-full mr-3 ${
+      isActive ? 'bg-green-600' : 'bg-white border border-gray-200'
+    }`}
   >
-    <Text className={`font-medium ${isActive ? 'text-white' : 'text-gray-700'}`}>{title}</Text>
+    <Text className={`font-medium ${isActive ? 'text-white' : 'text-gray-700'}`}>
+      {title}
+    </Text>
   </TouchableOpacity>
 );
 
-const SearchBar = ({ searchQuery, handleSearch }: { searchQuery: string, handleSearch: (query: string) => void }) => (
+const SearchBar = ({
+  searchQuery,
+  handleSearch,
+}: {
+  searchQuery: string;
+  handleSearch: (query: string) => void;
+}) => (
   <View className="flex-row items-center p-3 bg-gray-100 border border-gray-200 rounded-lg">
     <Icon name="search" size={18} color="#4b5563" className="mr-2" />
     <TextInput
@@ -60,46 +86,51 @@ export default function UserDashboard({ session }: UserDashboardProps) {
     fetchProducts();
   }, []);
 
-  
+  // Filter products by search query and category
+  const filterProducts = useCallback(
+    (query: string, category: string) => {
+      let filtered = products;
 
-  // Handle search
+      if (query) {
+        filtered = filtered.filter((product) =>
+          product.product_name.toLowerCase().includes(query.toLowerCase())
+        );
+      }
+
+      if (category !== 'all') {
+        filtered = filtered.filter(
+          (product) => product.category?.toLowerCase() === category.toLowerCase()
+        );
+      }
+
+      setFilteredProducts(filtered);
+    },
+    [products]
+  );
+
+  // Handle search input changes
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     filterProducts(query, activeCategory);
   };
 
-  // Handle category change
+  // Handle category selection
   const filterByCategory = (category: string) => {
     setActiveCategory(category);
     filterProducts(searchQuery, category);
   };
 
-  // Filter products by search query and category
-  const filterProducts = useCallback((query: string, category: string) => {
-    let filtered = products;
-
-    if (query) {
-      filtered = filtered.filter((product) =>
-        product.product_name.toLowerCase().includes(query.toLowerCase())
-      );
-    }
-
-    if (category !== 'all') {
-      filtered = filtered.filter(product => product.category?.toLowerCase() === category.toLowerCase());
-    }
-
-    setFilteredProducts(filtered);
-  }, [products]);
-
-  // Sign out confirmation
+  // Sign out confirmation alert
   const showAlert = () => {
     Alert.alert('Sign Out', 'Do you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'OK', onPress: async () => {
-        await clearCartstorage(); // <- this now clears both memory and storage
-        handleSignOut();
-      }
-    },
+      {
+        text: 'OK',
+        onPress: async () => {
+          await clearCartstorage(); // Clears cart in memory and storage
+          handleSignOut();
+        },
+      },
     ]);
   };
 
@@ -122,6 +153,7 @@ export default function UserDashboard({ session }: UserDashboardProps) {
       <View className="px-5 pt-12 pb-4 bg-white shadow-sm">
         <View className="flex-row items-center justify-between">
           <Text className="text-2xl font-bold tracking-wider text-green-700">AROMA</Text>
+
           <Link href="/cartview/CartScreen" asChild>
             <TouchableOpacity className="relative p-2">
               <Icon name="shopping-cart" size={24} color="#16a34a" />
@@ -132,6 +164,7 @@ export default function UserDashboard({ session }: UserDashboardProps) {
               )}
             </TouchableOpacity>
           </Link>
+
           <TouchableOpacity onPress={showAlert} className="p-2">
             <Icon name="log-out" size={22} color="#16a34a" />
           </TouchableOpacity>
@@ -146,7 +179,15 @@ export default function UserDashboard({ session }: UserDashboardProps) {
 
       {/* Categories */}
       <View className="px-5 pt-4">
-        <Text className="mb-3 text-base font-bold text-gray-700">Categories</Text>
+        <View className="flex-row items-center justify-between mb-3">
+          <Text className="mr-4 text-base font-bold text-gray-700">Categories</Text>
+          <Link href="/analysis/test" asChild>
+            <TouchableOpacity>
+              <Text className="text-xl font-bold text-gray-800">Test</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
+
         <View className="flex-row pb-2">
           <FlatList
             horizontal
@@ -155,7 +196,6 @@ export default function UserDashboard({ session }: UserDashboardProps) {
               { id: 'all', title: 'All' },
               { id: 'tea', title: 'Tea' },
               { id: 'coffee', title: 'Coffee' },
-              { id: 'special', title: 'Special Blends' },
             ]}
             renderItem={({ item }) => (
               <CategoryButton
@@ -172,8 +212,15 @@ export default function UserDashboard({ session }: UserDashboardProps) {
       {/* Product List */}
       <View className="flex-1 px-5 pt-2">
         <Text className="mt-2 mb-3 text-base font-bold text-gray-700">
-          {activeCategory === 'all' ? 'All Products' : activeCategory === 'tea' ? 'Tea Collection' : activeCategory === 'coffee' ? 'Coffee Selection' : 'Special Blends'}
+          {activeCategory === 'all'
+            ? 'All Products'
+            : activeCategory === 'tea'
+            ? 'Tea Collection'
+            : activeCategory === 'coffee'
+            ? 'Coffee Selection'
+            : 'Special Blends'}
         </Text>
+
         {filteredProducts.length === 0 ? (
           <View className="items-center justify-center flex-1">
             <Icon name="coffee" size={60} color="#d1d5db" />
@@ -189,20 +236,28 @@ export default function UserDashboard({ session }: UserDashboardProps) {
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
               <View className="bg-white rounded-2xl shadow-sm mb-5 w-[48%] overflow-hidden">
-                <Image source={{ uri: item.product_image }} className="w-full h-44" resizeMode="cover" />
+                <Image
+                  source={{ uri: item.product_image }}
+                  className="w-full h-44"
+                  resizeMode="cover"
+                />
                 <View className="p-3">
                   <Link href={`/products/${item.id}`} asChild>
                     <TouchableOpacity>
                       <Text className="text-base font-bold text-gray-800">{item.product_name}</Text>
                     </TouchableOpacity>
                   </Link>
-                  <Text className="mt-1 text-xs text-gray-500" numberOfLines={2}>{item.description || 'No description'}</Text>
+                  <Text className="mt-1 text-xs text-gray-500" numberOfLines={2}>
+                    {item.description || 'No description'}
+                  </Text>
                   <View className="flex-row items-center justify-between mt-3">
                     <Text className="text-lg font-bold text-green-700">${item.price}</Text>
                     <TouchableOpacity
                       onPress={() => {
                         addToCart(item);
-                        Alert.alert("Added to cart", `${item.product_name} added to your cart!`, [{ text: "OK" }]);
+                        Alert.alert('Added to cart', `${item.product_name} added to your cart!`, [
+                          { text: 'OK' },
+                        ]);
                       }}
                       className="items-center justify-center w-8 h-8 bg-green-600 rounded-full"
                     >
@@ -224,12 +279,14 @@ export default function UserDashboard({ session }: UserDashboardProps) {
             <Text className="mt-1 text-xs text-gray-600">Home</Text>
           </TouchableOpacity>
         </Link>
+
         <Link href="/orders/orders" asChild>
           <TouchableOpacity className="items-center">
             <Icon name="package" size={22} color="#9ca3af" />
             <Text className="mt-1 text-xs text-gray-600">Orders</Text>
           </TouchableOpacity>
         </Link>
+
         <Link href="/profiles/useraccount" asChild>
           <TouchableOpacity className="items-center">
             <Icon name="user" size={22} color="#9ca3af" />
