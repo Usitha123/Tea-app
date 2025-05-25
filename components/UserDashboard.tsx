@@ -1,4 +1,4 @@
-// components/UserDashboard.tsx
+'use client';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
@@ -31,13 +31,9 @@ const CategoryButton = ({
 }) => (
   <TouchableOpacity
     onPress={onPress}
-    className={`px-4 py-2 rounded-full mr-3 ${
-      isActive ? 'bg-green-600' : 'bg-white border border-gray-200'
-    }`}
+    className={`px-4 py-2 rounded-full mr-3 ${isActive ? 'bg-green-600' : 'bg-white border border-gray-200'}`}
   >
-    <Text className={`font-medium ${isActive ? 'text-white' : 'text-gray-700'}`}>
-      {title}
-    </Text>
+    <Text className={`font-medium ${isActive ? 'text-white' : 'text-gray-700'}`}>{title}</Text>
   </TouchableOpacity>
 );
 
@@ -72,13 +68,11 @@ export default function UserDashboard({ session }: UserDashboardProps) {
   const [activeCategory, setActiveCategory] = useState('all');
   const { cartItems, addToCart, clearCartstorage } = useCart();
 
-  // Fetch products on mount
   useEffect(() => {
     const fetchProducts = async () => {
       const { data, error } = await supabase.from('products').select('*');
-      if (error) {
-        console.error('Error fetching products:', error);
-      } else {
+      if (error) console.error('Error fetching products:', error);
+      else {
         setProducts(data);
         setFilteredProducts(data);
       }
@@ -86,55 +80,47 @@ export default function UserDashboard({ session }: UserDashboardProps) {
     fetchProducts();
   }, []);
 
-  // Filter products by search query and category
   const filterProducts = useCallback(
     (query: string, category: string) => {
       let filtered = products;
-
       if (query) {
-        filtered = filtered.filter((product) =>
-          product.product_name.toLowerCase().includes(query.toLowerCase())
+        filtered = filtered.filter((p) =>
+          p.product_name.toLowerCase().includes(query.toLowerCase())
         );
       }
-
       if (category !== 'all') {
         filtered = filtered.filter(
-          (product) => product.category?.toLowerCase() === category.toLowerCase()
+          (p) => p.category?.toLowerCase() === category.toLowerCase()
         );
       }
-
       setFilteredProducts(filtered);
     },
     [products]
   );
 
-  // Handle search input changes
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     filterProducts(query, activeCategory);
   };
 
-  // Handle category selection
   const filterByCategory = (category: string) => {
     setActiveCategory(category);
     filterProducts(searchQuery, category);
   };
 
-  // Sign out confirmation alert
   const showAlert = () => {
     Alert.alert('Sign Out', 'Do you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'OK',
         onPress: async () => {
-          await clearCartstorage(); // Clears cart in memory and storage
+          await clearCartstorage();
           handleSignOut();
         },
       },
     ]);
   };
 
-  // Sign out handler
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -153,27 +139,29 @@ export default function UserDashboard({ session }: UserDashboardProps) {
       <View className="px-5 pt-12 pb-4 bg-white shadow-sm">
         <View className="flex-row items-center justify-between">
           <Text className="text-2xl font-bold tracking-wider text-green-700">AROMA</Text>
-
-          <Link href="/cartview/CartScreen" asChild>
-            <TouchableOpacity className="relative p-2">
-              <Icon name="shopping-cart" size={24} color="#16a34a" />
-              {cartItems.length > 0 && (
-                <View className="absolute top-0 right-0 flex items-center justify-center w-5 h-5 bg-red-500 rounded-full">
-                  <Text className="text-xs font-bold text-white">{cartItems.length}</Text>
-                </View>
-              )}
+          <View className="flex-row items-center space-x-4">
+            <Link href="/cartview/CartScreen" asChild>
+              <TouchableOpacity className="relative p-2">
+                <Icon name="shopping-cart" size={24} color="#16a34a" />
+                {cartItems.length > 0 && (
+                  <View className="absolute top-0 right-0 flex items-center justify-center w-5 h-5 bg-red-500 rounded-full">
+                    <Text className="text-xs font-bold text-white">{cartItems.length}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </Link>
+            <TouchableOpacity onPress={showAlert} className="p-2">
+              <Icon name="log-out" size={22} color="#16a34a" />
             </TouchableOpacity>
-          </Link>
-
-          <TouchableOpacity onPress={showAlert} className="p-2">
-            <Icon name="log-out" size={22} color="#16a34a" />
-          </TouchableOpacity>
+          </View>
         </View>
+      </View>
 
-        {/* Greeting & Search */}
-        <Text className="mt-3 mb-4 text-lg italic font-medium text-center text-gray-600">
-          A Perfect Blend of Tea & Coffee
-        </Text>
+      <Text className="mt-3 mb-4 text-lg italic font-medium text-center text-gray-600">
+        A Perfect Blend of Tea & Coffee
+      </Text>
+
+      <View className="px-5">
         <SearchBar searchQuery={searchQuery} handleSearch={handleSearch} />
       </View>
 
@@ -182,34 +170,32 @@ export default function UserDashboard({ session }: UserDashboardProps) {
         <View className="flex-row items-center justify-between mb-3">
           <Text className="mr-4 text-base font-bold text-gray-700">Categories</Text>
           <Link href="/analysis/test" asChild>
-            <TouchableOpacity>
-              <Text className="text-xl font-bold text-gray-800">Test</Text>
-            </TouchableOpacity>
+            <TouchableOpacity >
+              <Text className="text-xl font-bold text-gray-800 ">Product Overview</Text>
+            </TouchableOpacity >
           </Link>
         </View>
 
-        <View className="flex-row pb-2">
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={[
-              { id: 'all', title: 'All' },
-              { id: 'tea', title: 'Tea' },
-              { id: 'coffee', title: 'Coffee' },
-            ]}
-            renderItem={({ item }) => (
-              <CategoryButton
-                title={item.title}
-                isActive={activeCategory === item.id}
-                onPress={() => filterByCategory(item.id)}
-              />
-            )}
-            keyExtractor={(item) => item.id}
-          />
-        </View>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={[
+            { id: 'all', title: 'All' },
+            { id: 'tea', title: 'Tea' },
+            { id: 'coffee', title: 'Coffee' },
+          ]}
+          renderItem={({ item }) => (
+            <CategoryButton
+              title={item.title}
+              isActive={activeCategory === item.id}
+              onPress={() => filterByCategory(item.id)}
+            />
+          )}
+          keyExtractor={(item) => item.id}
+        />
       </View>
 
-      {/* Product List */}
+      {/* Products */}
       <View className="flex-1 px-5 pt-2">
         <Text className="mt-2 mb-3 text-base font-bold text-gray-700">
           {activeCategory === 'all'
@@ -235,15 +221,23 @@ export default function UserDashboard({ session }: UserDashboardProps) {
             contentContainerStyle={{ paddingBottom: 100 }}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
-              <View className="bg-white rounded-2xl shadow-sm mb-5 w-[48%] overflow-hidden">
+              <View className="bg-white rounded-2xl shadow-sm mb-5 w-[48%] overflow-hidden relative">
                 <Image
                   source={{ uri: item.product_image }}
                   className="w-full h-44"
                   resizeMode="cover"
+                  blurRadius={!item.status ? 5 : 0}
                 />
+                {!item.status && (
+                  <View className="absolute inset-0 items-center justify-center bg-black/50">
+                    <Text className="px-2 py-1 text-sm font-bold text-white bg-red-500 rounded">
+                      Not Available
+                    </Text>
+                  </View>
+                )}
                 <View className="p-3">
                   <Link href={`/products/${item.id}`} asChild>
-                    <TouchableOpacity>
+                    <TouchableOpacity disabled={!item.status}>
                       <Text className="text-base font-bold text-gray-800">{item.product_name}</Text>
                     </TouchableOpacity>
                   </Link>
@@ -254,12 +248,14 @@ export default function UserDashboard({ session }: UserDashboardProps) {
                     <Text className="text-lg font-bold text-green-700">${item.price}</Text>
                     <TouchableOpacity
                       onPress={() => {
+                        if (!item.status) return;
                         addToCart(item);
-                        Alert.alert('Added to cart', `${item.product_name} added to your cart!`, [
-                          { text: 'OK' },
-                        ]);
+                        Alert.alert('Added to cart', `${item.product_name} added to your cart!`);
                       }}
-                      className="items-center justify-center w-8 h-8 bg-green-600 rounded-full"
+                      disabled={!item.status}
+                      className={`items-center justify-center w-8 h-8 rounded-full ${
+                        item.status ? 'bg-green-600' : 'bg-gray-400'
+                      }`}
                     >
                       <Icon name="plus" size={18} color="white" />
                     </TouchableOpacity>
@@ -279,14 +275,12 @@ export default function UserDashboard({ session }: UserDashboardProps) {
             <Text className="mt-1 text-xs text-gray-600">Home</Text>
           </TouchableOpacity>
         </Link>
-
         <Link href="/orders/orders" asChild>
           <TouchableOpacity className="items-center">
             <Icon name="package" size={22} color="#9ca3af" />
             <Text className="mt-1 text-xs text-gray-600">Orders</Text>
           </TouchableOpacity>
         </Link>
-
         <Link href="/profiles/useraccount" asChild>
           <TouchableOpacity className="items-center">
             <Icon name="user" size={22} color="#9ca3af" />
