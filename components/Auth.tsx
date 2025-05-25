@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
-import { Alert, StyleSheet, View, Text, TouchableOpacity} from 'react-native'
+import { Alert, StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native'
 import { supabase } from '@/lib/supabase'
 import { Button, Input } from '@rneui/themed'
 import { useNavigation } from '@react-navigation/native';
 import { Link } from 'expo-router';
+
 
 export default function EmailForm() {
   const navigation = useNavigation();
@@ -39,6 +40,10 @@ export default function EmailForm() {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../assets/images/Logo.png')} // adjust the path
+        style={styles.image}
+      />
       <Text className="mb-2 text-3xl font-bold text-center text-gray-800">Welcome Back</Text>
       <Text className="mb-2 text-2xl font-bold text-center text-gray-800">Sign In</Text>
       <View style={[styles.verticallySpaced, styles.mt20]}>
@@ -96,5 +101,11 @@ const styles = StyleSheet.create({
   },
   mt20: {
     marginTop: 20,
+  },
+  image: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
+    resizeMode: 'contain',
   },
 })

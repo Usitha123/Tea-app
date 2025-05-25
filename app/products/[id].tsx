@@ -16,6 +16,7 @@ import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
 import useSession from '@/hooks/useSession';
 import { Session } from '@supabase/supabase-js';
+import FlashDealBanner from '@/components/Flashdeal';
 
 type Product = {
   id: string;
@@ -284,12 +285,11 @@ const ProductDetails: React.FC = () => {
                 </Text>
                 <Text className="text-gray-700">{product.description}</Text>
               </View>
+              
+              {/* Discount Flash deal */}
+              <FlashDealBanner />
 
-              {/* Product ID */}
-              <View className="p-3 mb-6 rounded-lg bg-gray-50">
-                <Text className="text-sm text-gray-500">Product ID: {id}</Text>
-              </View>
-
+              
               {/* Add to Cart */}
               <TouchableOpacity
                 onPress={handleAddToCart}
