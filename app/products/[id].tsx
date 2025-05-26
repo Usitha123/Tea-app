@@ -281,7 +281,7 @@ const ProductDetails: React.FC = () => {
                   {product.product_name}
                 </Text>
                 <Text className="mb-4 text-xl font-bold text-green-600">
-                  ${product.price.toFixed(2)}
+                  Rs.{product.price.toFixed(2)}
                 </Text>
                 <Text className="text-gray-700">{product.description}</Text>
               </View>

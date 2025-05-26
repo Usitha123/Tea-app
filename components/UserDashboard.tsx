@@ -245,7 +245,7 @@ export default function UserDashboard({ session }: UserDashboardProps) {
                     {item.description || 'No description'}
                   </Text>
                   <View className="flex-row items-center justify-between mt-3">
-                    <Text className="text-lg font-bold text-green-700">${item.price}</Text>
+                    <Text className="text-lg font-bold text-green-700">Rs.{item.price}</Text>
                     <TouchableOpacity
                       onPress={() => {
                         if (!item.status) return;
